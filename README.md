@@ -1,6 +1,6 @@
 # AI Personal Operational System — POS {sprint}
 
-**Batch: sprint-X26 | Applications: open**
+**Batch: sprint-X26
 
 2 марта — 14 марта 2026
 

@@ -1,0 +1,57 @@
+{
+  "_comment": "Sample metrics and company data for OKR cascade generation. Edit values based on your actual business metrics.",
+  "company": {
+    "name": "SaaS Analytics Platform",
+    "stage": "Series B",
+    "fiscal_year": 2025,
+    "currency": "USD"
+  },
+  "current_metrics": {
+    "mau": 15000,
+    "dau": 8500,
+    "mrr": 185000,
+    "arr": 2220000,
+    "arpu": 148,
+    "ltv_to_cac": 3.2,
+    "nps": 42,
+    "retention_rate_annual": 92,
+    "churn_rate_monthly": 0.8,
+    "gross_margin": 0.72,
+    "net_retention_rate": 110
+  },
+  "targets_growth": {
+    "mau": 25000,
+    "arr": 4500000,
+    "new_markets": 3
+  },
+  "targets_retention": {
+    "nps": 60,
+    "retention_rate_annual": 95,
+    "churn_rate_monthly": 0.5
+  },
+  "targets_revenue": {
+    "arr": 4500000,
+    "arpu_increase": 0.25,
+    "new_revenue_streams": 2
+  },
+  "targets_innovation": {
+    "new_features": 5,
+    "revenue_from_new_products": 0.20,
+    "time_to_market_reduction": 0.30
+  },
+  "team_structure": {
+    "product_team": 5,
+    "engineering_team": 12,
+    "marketing_team": 4,
+    "sales_team": 6,
+    "support_team": 3
+  },
+  "strategic_initiatives": [
+    "Expand into European market",
+    "Build enterprise features for Fortune 500 segment",
+    "Create AI-powered analytics features",
+    "Develop mobile app for field analysts"
+  ],
+  "quarterly_focus": "Q1: Growth in SMB, Q2: Enterprise features, Q3: Mobile launch, Q4: International expansion",
+  "notes": "Company experiencing strong net retention (110%) suggests good product-market fit. Focus should be on maintaining retention while driving growth."
+}
