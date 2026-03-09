@@ -94,6 +94,12 @@ Batch: sprint-X26
 |-------|----------|
 | [roi-razvitie-draft](skills/roi-razvitie-draft) | Драфт документа к еженедельной встрече «Roi Развитие» (среда) — пункты для обсуждения и заметки |
 
+### [@aPoWall](https://github.com/aPoWall)
+
+| Скилл | Описание |
+|-------|----------|
+| [deck](skills/deck) | HTML-генератор презентаций — 2 стиля (terminal/editorial), single-file, zero dependencies |
+
 ## Chrome Extensions
 
 Расширения для браузера Chrome, созданные участниками спринта.
