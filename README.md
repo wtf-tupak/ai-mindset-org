@@ -79,7 +79,7 @@ Batch: sprint-X26
 
 | Скилл | Описание |
 |-------|----------|
-| [ai-bear-newsletter](skills/sbg075/ai-bear-newsletter) | AI-Bear newsletter — трансформация Notion-черновиков в статьи для LinkedIn/Substack |
+| [ai-bear-newsletter](skills/ai-bear-newsletter) | AI-Bear newsletter — трансформация Notion-черновиков в статьи для LinkedIn/Substack |
 
 ### [@zariavv](https://github.com/zariavv)
 

@@ -1,0 +1,191 @@
+{
+  "_comment": "This is a template. Will be populated when workflow 1 starts.",
+  "id": null,
+  "created": null,
+  "updated": null,
+  "status": "empty",
+  "idea": {
+    "rawIdea": null,
+    "refinedIdea": null,
+    "audience": null,
+    "problem": null,
+    "insight": null,
+    "noveltyTypes": [],
+    "noveltyScore": 0,
+    "validated": false,
+    "research": {
+      "method": null,
+      "queries": [],
+      "summary": null,
+      "gap_identified": null,
+      "timestamp": null
+    },
+    "scoring": {
+      "novelty": {
+        "score": 0,
+        "reasoning": null,
+        "evidence": null,
+        "improvement": null
+      },
+      "resonance": {
+        "score": 0,
+        "reasoning": null,
+        "evidence": null,
+        "improvement": null
+      },
+      "overall_recommendation": null
+    }
+  },
+  "intro": {
+    "variants": [
+      {
+        "number": 1,
+        "hookType": null,
+        "hook": null,
+        "fullIntro": null,
+        "scoring": {
+          "hook_strength": {
+            "score": 0,
+            "reasoning": null,
+            "evidence": null,
+            "improvement": null
+          },
+          "clarity": {
+            "score": 0,
+            "reasoning": null,
+            "evidence": null,
+            "improvement": null
+          },
+          "ai_slop_score": {
+            "score": 0,
+            "reasoning": null,
+            "evidence": null,
+            "improvement": null
+          },
+          "overall": 0
+        },
+        "createdAt": null
+      },
+      {
+        "number": 2,
+        "hookType": null,
+        "hook": null,
+        "fullIntro": null,
+        "scoring": {
+          "hook_strength": {
+            "score": 0,
+            "reasoning": null,
+            "evidence": null,
+            "improvement": null
+          },
+          "clarity": {
+            "score": 0,
+            "reasoning": null,
+            "evidence": null,
+            "improvement": null
+          },
+          "ai_slop_score": {
+            "score": 0,
+            "reasoning": null,
+            "evidence": null,
+            "improvement": null
+          },
+          "overall": 0
+        },
+        "createdAt": null
+      },
+      {
+        "number": 3,
+        "hookType": null,
+        "hook": null,
+        "fullIntro": null,
+        "scoring": {
+          "hook_strength": {
+            "score": 0,
+            "reasoning": null,
+            "evidence": null,
+            "improvement": null
+          },
+          "clarity": {
+            "score": 0,
+            "reasoning": null,
+            "evidence": null,
+            "improvement": null
+          },
+          "ai_slop_score": {
+            "score": 0,
+            "reasoning": null,
+            "evidence": null,
+            "improvement": null
+          },
+          "overall": 0
+        },
+        "createdAt": null
+      }
+    ],
+    "selected_variant": null,
+    "version": 2
+  },
+  "persona_test_results": {
+    "timestamp": null,
+    "personas": [],
+    "aggregate_score": 0,
+    "will_read_count": null,
+    "strongest_aspect": null,
+    "weakest_aspect": null,
+    "recommendation": null
+  },
+  "article": {
+    "objective": null,
+    "outline": [],
+    "sections": [],
+    "draft": null,
+    "rewritten": null,
+    "final": null,
+    "wordCount": 0,
+    "rewritingStats": {
+      "originalWordCount": 0,
+      "rewrittenWordCount": 0,
+      "clarityIssuesFixed": 0,
+      "fillerRemoved": 0,
+      "dopamineHitsAdded": 0
+    },
+    "aiSlopFixes": {
+      "contrastFraming": 0,
+      "ruleOfThree": 0,
+      "cringeTransitions": 0,
+      "presentIngVerbs": 0,
+      "vagueOpinions": 0,
+      "formalLanguage": 0,
+      "emojis": 0,
+      "emDashes": 0,
+      "symbolicLanguage": 0,
+      "fakePersonas": 0
+    },
+    "styleImprovements": {
+      "voiceFixed": false,
+      "vividnessAdded": false,
+      "poetryAdded": false
+    },
+    "markdown_export": {
+      "file_path": null,
+      "created_at": null,
+      "last_updated": null,
+      "sections_written": [],
+      "sync_status": "not_started"
+    },
+    "createdAt": null,
+    "rewrittenAt": null,
+    "finalizedAt": null
+  },
+  "visual": {
+    "requested": false,
+    "type": null,
+    "concept": null,
+    "prompt": null,
+    "image_url": null,
+    "alt_text": null,
+    "created_via": null,
+    "createdAt": null
+  }
+}
