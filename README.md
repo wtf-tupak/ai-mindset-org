@@ -75,6 +75,18 @@ Batch: sprint-X26
 | [student-agent-os](skills/sergeiriumkin/student-agent-os.skill) | Автоматизация общения со студентами — агентная ОС |
 | [telegram-faq-bot](skills/sergeiriumkin/telegram-faq-bot.skill) | Telegram FAQ-бот для студентов |
 
+### [@sbg075](https://github.com/sbg075)
+
+| Скилл | Описание |
+|-------|----------|
+| [ai-bear-newsletter](skills/sbg075/ai-bear-newsletter) | AI-Bear newsletter — трансформация Notion-черновиков в статьи для LinkedIn/Substack |
+
+## Chrome Extensions
+
+| Расширение | Автор | Описание |
+|------------|-------|----------|
+| [ev_garde](Chrome%20Extensions/ev_garde) | [@ev_garde](https://github.com/ev_garde) | Chrome-расширение new tab + скилл ai-bear-newsletter |
+
 ## Участие
 
 Добавляйте свои материалы через PR.
