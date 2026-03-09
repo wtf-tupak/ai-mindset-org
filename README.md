@@ -81,6 +81,12 @@ Batch: sprint-X26
 |-------|----------|
 | [ai-bear-newsletter](skills/sbg075/ai-bear-newsletter) | AI-Bear newsletter — трансформация Notion-черновиков в статьи для LinkedIn/Substack |
 
+### [@zariavv](https://github.com/zariavv)
+
+| Скилл | Описание |
+|-------|----------|
+| [project-knowledge-base](skills/project-knowledge-base) | Инициализация и обновление базы знаний проекта (PKB.md) в Obsidian — агрегация из Google Drive, Gmail, Telegram, moo.team и локальных заметок |
+
 ## Chrome Extensions
 
 Расширения для браузера Chrome, созданные участниками спринта.
