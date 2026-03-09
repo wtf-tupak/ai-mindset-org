@@ -87,7 +87,7 @@ Batch: sprint-X26
 |-------|----------|
 | [project-knowledge-base](skills/project-knowledge-base) | Инициализация и обновление базы знаний проекта (PKB.md) в Obsidian — агрегация из Google Drive, Gmail, Telegram, moo.team и локальных заметок |
 
-### [@YOUR_GITHUB_USERNAME](https://github.com/YOUR_GITHUB_USERNAME)
+### [@bykovvasily](https://github.com/YOUR_GITHUB_USERNAME)
 
 | Скилл | Описание |
 |-------|----------|
