@@ -87,6 +87,12 @@ Batch: sprint-X26
 |-------|----------|
 | [project-knowledge-base](skills/project-knowledge-base) | Инициализация и обновление базы знаний проекта (PKB.md) в Obsidian — агрегация из Google Drive, Gmail, Telegram, moo.team и локальных заметок |
 
+### [@YOUR_GITHUB_USERNAME](https://github.com/YOUR_GITHUB_USERNAME)
+
+| Скилл | Описание |
+|-------|----------|
+| [roi-razvitie-draft](skills/roi-razvitie-draft) | Драфт документа к еженедельной встрече «Roi Развитие» (среда) — пункты для обсуждения и заметки |
+
 ## Chrome Extensions
 
 Расширения для браузера Chrome, созданные участниками спринта.
