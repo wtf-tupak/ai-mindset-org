@@ -1,0 +1,13 @@
+.env
+.env.local
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.pip-tools-cache/
+__pycache__/
+logs/
+*.log
+*.session
+google_token.json
+*token*.json

@@ -1,0 +1,11 @@
+telethon
+pyqrcode
+google-api-python-client
+google-auth-oauthlib
+google-auth-httplib2
+requests
+python-frontmatter
+python-dotenv
+anthropic
+openai
+pyyaml
