@@ -1,0 +1,26 @@
+name: Auto-add Issues to Project
+
+on:
+  issues:
+    types: [opened, reopened]
+  workflow_dispatch:
+
+jobs:
+  add-to-project:
+    name: Add issue to Personal Corp project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add issue to project
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROJECT_NUMBER: 1
+          PROJECT_OWNER: wtf-tupak
+        run: |
+          echo "Adding issue ${{ github.event.issue.html_url }} to project..."
+          gh project item-add $PROJECT_NUMBER --owner $PROJECT_OWNER --url "${{ github.event.issue.html_url }}" || echo "Issue may already be in project"
+      - name: Comment on issue
+        if: github.event.action == 'opened'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment "${{ github.event.issue.number }}" --body "✓ Auto-added to [Personal Corp Project](https://github.com/users/wtf-tupak/projects/1)" --repo "${{ github.repository }}"

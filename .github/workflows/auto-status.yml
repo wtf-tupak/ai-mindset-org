@@ -1,0 +1,63 @@
+name: Auto-move Issues by Label
+
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+
+jobs:
+  update-status:
+    name: Update project status based on label
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine status from label
+        id: status
+        run: |
+          LABEL="${{ github.event.label.name }}"
+          case $LABEL in
+            "spec")
+              echo "status=Backlog" >> $GITHUB_OUTPUT
+              ;;
+            "plan")
+              echo "status=Backlog" >> $GITHUB_OUTPUT
+              ;;
+            "ready")
+              echo "status=Ready" >> $GITHUB_OUTPUT
+              ;;
+            "in-progress")
+              echo "status=In Progress" >> $GITHUB_OUTPUT
+              ;;
+            "review")
+              echo "status=Review" >> $GITHUB_OUTPUT
+              ;;
+            "blocked")
+              echo "status=Blocked" >> $GITHUB_OUTPUT
+              ;;
+            "done")
+              echo "status=Done" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "status=" >> $GITHUB_OUTPUT
+              ;;
+          esac
+      - name: Update project status
+        if: steps.status.outputs.status != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROJECT_NUMBER: 1
+          PROJECT_OWNER: wtf-tupak
+        run: |
+          echo "Moving issue to ${{ steps.status.outputs.status }}..."
+          # Get item ID
+          ITEM_ID=$(gh project item-list $PROJECT_NUMBER --owner $PROJECT_OWNER --format json --jq ".items[] | select(.content.number == ${{ github.event.issue.number }} and .content.repository == \"${{ github.repository }}\") | .id" 2>/dev/null | head -1)
+          if [ -n "$ITEM_ID" ]; then
+            gh project item-edit $PROJECT_NUMBER --owner $PROJECT_OWNER --id "$ITEM_ID" --field "Status" --value "${{ steps.status.outputs.status }}"
+          else
+            echo "Issue not found in project, may need to add first"
+          fi
+      - name: Comment on status change
+        if: steps.status.outputs.status != '' && steps.status.outputs.status != 'Backlog'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment "${{ github.event.issue.number }}" --body "🏷️ Status updated to **${{ steps.status.outputs.status }}** in [Personal Corp Project](https://github.com/users/wtf-tupak/projects/1)" --repo "${{ github.repository }}"

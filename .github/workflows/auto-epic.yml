@@ -1,0 +1,35 @@
+name: Auto-decompose Epic on Creation
+
+on:
+  issues:
+    types: [opened, labeled]
+  workflow_dispatch:
+
+jobs:
+  decompose-epic:
+    name: Decompose epic into sub-issues
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'epic') || github.event.label.name == 'epic'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Create decomposition comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUM: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Create IssueOps comment with /plan command
+          BODY="## 🎯 Epic Decomposition\n\nThis issue has been marked as an **epic**.\n\n**Next steps:**\n1. Comment \\"/plan\\" below to trigger auto-decomposition\n2. Or manually create sub-issues and link them:\n   - \\"Task 1: ...\\"\n   - \\"Task 2: ...\\"\n\n**Epic:** $ISSUE_TITLE\n**Parent:** #$ISSUE_NUM"
+
+          gh issue comment "$ISSUE_NUM" --body "$BODY" --repo "$REPO"
+
+          # Add to project with high priority
+          gh project item-add 1 --owner wtf-tupak --url "${{ github.event.issue.html_url }}" || echo "May already be in project"
+      - name: Label as needs-planning
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue edit "${{ github.event.issue.number }}" --add-label "plan" --repo "${{ github.repository }}" || echo "Label already exists"

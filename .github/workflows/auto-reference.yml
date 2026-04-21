@@ -1,0 +1,63 @@
+name: Auto-comment on Issue References
+
+on:
+  push:
+    branches-ignore: [dependabot/**]
+  workflow_dispatch:
+
+jobs:
+  comment-references:
+    name: Comment on referenced issues
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Find referenced issues in commits
+        id: refs
+        run: |
+          # Get commits in this push
+          if [ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]; then
+            # New branch
+            COMMITS=$(git log --format=%H ${{ github.sha }} -n 10)
+          else
+            COMMITS=$(git log --format=%H ${{ github.event.before }}..${{ github.sha }})
+          fi
+
+          # Extract issue numbers from commit messages
+          ISSUES=""
+          for COMMIT in $COMMITS; do
+            MSG=$(git log -1 --format=%B $COMMIT)
+            # Look for (#N) pattern
+            REFS=$(echo "$MSG" | grep -oE '#[0-9]+' | tr '\n' ' ')
+            if [ -n "$REFS" ]; then
+              ISSUES="$ISSUES $REFS"
+            fi
+          done
+
+          # Remove duplicates
+          UNIQUE=$(echo $ISSUES | tr ' ' '\n' | sort -u | tr '\n' ' ')
+          echo "issues=$UNIQUE" >> $GITHUB_OUTPUT
+          echo "Found references: $UNIQUE"
+      - name: Comment on each referenced issue
+        if: steps.refs.outputs.issues != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPO="${{ github.repository }}"
+          for ISSUE in ${{ steps.refs.outputs.issues }}; do
+            NUM=$(echo $ISSUE | tr -d '#')
+            COMMIT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+
+            # Build commit list
+            if [ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]; then
+              COMMITS=$(git log --format="- %s (%h)" ${{ github.sha }} -n 5)
+            else
+              COMMITS=$(git log --format="- %s (%h)" ${{ github.event.before }}..${{ github.sha }})
+            fi
+
+            BODY="🔨 Referenced in commit [${COMMIT_SHA}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}):\n\n${COMMITS}"
+
+            gh issue comment "$NUM" --body "$BODY" --repo "$REPO" || echo "Could not comment on issue #$NUM"
+          done
