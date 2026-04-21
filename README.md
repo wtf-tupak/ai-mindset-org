@@ -1,117 +1,130 @@
-# AI Personal Operational System — POS {sprint}
+# pos-print — AI-First Agency Output Layer
 
-Batch: sprint-X26
+**Project Type:** CLI visualization, terminal aesthetic, automation  
+**Lifecycle Phase:** Active execution  
+**Owner:** wtf-tupak
 
-2 марта — 14 марта 2026
+---
 
-Материалы, правила и конфигурации участников спринта — промпты, skills, CLAUDE.md и другие артефакты Personal Operational System.
+## Quick Links
 
-## Practice
+| Resource | Location |
+|----------|----------|
+| **Project Board** | https://github.com/users/wtf-tupak/projects/1 |
+| **Active Work** | [`work/`](work/) — task artifacts |
+| **Research** | [`research-corp/`](research-corp/) — conventions, patterns |
+| **Canonical** | [`AGENTS.md`](AGENTS.md), [`CLAUDE.md`](CLAUDE.md) |
+| **Structure** | [`STRUCTURE.md`](STRUCTURE.md) — how this repo is organized |
 
-Общие гайды и практики спринта.
+---
 
-| Гайд | Описание |
-|------|----------|
-| [Naming Convention & Vault Structure](practice/naming-convention-vault-structure.md) | Формула имён файлов, структура Obsidian vault, теги, YAML frontmatter, интеграция с AI-агентами. [Веб-версия](https://pos-pipelines.netlify.app/naming.html) |
-| [Правила оркестрации моделей](practice/sergey-zinenko-orchestration-rules.md) | Таблица делегирования Opus/Sonnet/Haiku, автоэскалация, правила сессии |
-| [deck — HTML Presentation Generator](skills/deck) | Скилл для Claude Code: генерация single-file HTML презентаций. 2 стиля (terminal / editorial), готовые компоненты, примеры |
-| [CLI Awareness System](practice/cli-awareness-system) | Status Line, Footer Protocol, Task Awareness, Mission Control — 4 уровня информационного слоя в терминале Claude Code. Скрипты, шаблоны, примеры настройки |
+## What This Is
 
-## Skills
+This repo is the **output layer** of Personal Corp — AI-native agency infrastructure.
 
-Скиллы участников спринта для Claude Code.
+- **Not a web app** — no src/, no app/, no pages/
+- **Collection of:** Claude Code skills, Python scripts, automation workflows
+- **Purpose:** Generate dashboards, reports, CLI tools for agency operations
 
-### [@khabaroff](https://github.com/khabaroff)
+---
 
-| Скилл | Описание |
-|-------|----------|
-| [business-analyst-toolkit](skills/business-analyst-toolkit) | Анализ бизнес-процессов, документация требований, оптимизация workflow |
-| [markdown-new](skills/markdown-new) | Конвертация веб-страниц в Markdown через markdown.new для AI-воркфлоу |
-| [product-strategist](skills/product-strategist) | Продуктовая стратегия — OKR, анализ рынка, vision, масштабирование команды |
-| [seo-strategist](skills/seo-strategist) | SEO-стратегия — аудит, семантика, контент-план, техническая оптимизация |
-| [writing-content](skills/writing-content) | Написание текстов для вайб-маркетинга по Julian Shapiro framework |
+## Repository Structure
 
-### [@gohardstronger](https://github.com/gohardstronger)
+```
+pos-print/
+├── ROOT/                    # Canonical files only
+│   ├── AGENTS.md           # Agent registry
+│   ├── CLAUDE.md           # Project rules
+│   ├── README.md           # This file
+│   └── STRUCTURE.md        # Lifecycle documentation
+│
+├── research-corp/          # Research, conventions, patterns
+│   ├── naming-convention/
+│   ├── orchestration/
+│   ├── context-storage/
+│   └── session-management/
+│
+├── work/                   # Active execution
+│   ├── issue-2-agency-infra/
+│   ├── issue-1-cmo-agent/
+│   └── issue-3-template-repo/
+│
+├── skills/                 # Claude Code skills (40+)
+│   ├── business-analyst-toolkit/
+│   ├── seo-strategist/
+│   └── ...
+│
+└── .github/workflows/      # Automation
+```
 
-| Скилл | Описание |
-|-------|----------|
-| [daily-work](skills/daily-work) | Автоматический дневной отчёт из activity log, git, session checkpoints в Obsidian |
-| [tg-saved](skills/tg-saved) | Telegram Saved Messages → глубокий анализ через Claude → Obsidian |
-| [yt-transcribe](skills/yt-transcribe) | Транскрибация YouTube через mlx-whisper (Apple Silicon) → Obsidian |
+**Organized by lifecycle, not topic.** See [STRUCTURE.md](STRUCTURE.md) for rationale.
 
-### [@fmbo31](https://github.com/fmbo31)
+---
 
-| Скилл | Описание |
-|-------|----------|
-| [find-vendor](skills/find-vendor) | Оркестратор поиска подрядчика — NL-запрос, фильтрация и ранжирование из Baserow |
-| [summarize-comments](skills/summarize-comments) | LLM-выжимка из комментариев менеджеров о подрядчиках |
+## Active Issues
 
-### [@alexfrmn](https://github.com/alexfrmn)
+| Issue | Folder | Status |
+|-------|--------|--------|
+| #2 | [`work/issue-2-agency-infra/`](work/issue-2-agency-infra/) | Agency infrastructure |
+| #1 | [`work/issue-1-cmo-agent/`](work/issue-1-cmo-agent/) | CMO Agent dev |
+| #3 | [`work/issue-3-template-repo/`](work/issue-3-template-repo/) | Template repository |
 
-| Скилл | Описание |
-|-------|----------|
-| [session-management](skills/session-management) | Управление контекстом сессии — start, save, compress, continue |
+---
 
-### [@usatovw](https://github.com/usatovw)
+## Skills Overview
 
-| Скилл | Описание |
-|-------|----------|
-| [skill-security](skills/skill-security) | 7-томный security-аудит и ребилд скиллов Claude Code |
+Selected skills for agency operations:
 
-### [@valeryvpetrov-dev](https://github.com/valeryvpetrov-dev)
+| Skill | Purpose |
+|-------|---------|
+| [`skills/business-analyst-toolkit/`](skills/business-analyst-toolkit/) | 7 scripts: charter, gap analysis, RACI, KPI, etc. |
+| [`skills/seo-strategist/`](skills/seo-strategist/) | 3 scripts: keyword research, roadmap, tech audit |
+| [`skills/product-strategist/`](skills/product-strategist/) | 2 scripts: OKR cascade, lifecycle |
+| [`skills/deck/`](skills/deck/) | HTML presentation generator |
 
-| Скилл | Описание |
-|-------|----------|
-| [learning-loop](skills/learning-loop) | Обновление раздела Learning Loop в markdown-файле POS — фиксация понимания, задач и ссылок |
+Full list: see [`AGENTS.md`](AGENTS.md).
 
-### [@divnomorskoe1989](https://github.com/divnomorskoe1989)
+---
 
-| Скилл | Описание |
-|-------|----------|
-| [jira-monitor](skills/jira-monitor) | Kanban-мониторинг Jira — метрики потока, поиск bottleneck, дефекты, sprint scope, оценки |
+## Automation
 
-### [@sergeyryumkin](https://github.com/sergeyryumkin)
+GitHub Actions workflows:
 
-| Скилл | Описание |
-|-------|----------|
-| [student-agent-os](skills/sergeiriumkin/student-agent-os.skill) | Автоматизация общения со студентами — агентная ОС |
-| [telegram-faq-bot](skills/sergeiriumkin/telegram-faq-bot.skill) | Telegram FAQ-бот для студентов |
+| Workflow | Trigger | Action |
+|----------|---------|--------|
+| `auto-project.yml` | Issue created | Add to GitHub Project |
+| `auto-status.yml` | Label changed | Move project column |
+| `auto-reference.yml` | Push with (#N) | Comment on issue |
+| `auto-epic.yml` | Epic labeled | Decomposition comment |
 
-### [@sbg075](https://github.com/sbg075)
+---
 
-| Скилл | Описание |
-|-------|----------|
-| [ai-bear-newsletter](skills/ai-bear-newsletter) | AI-Bear newsletter — трансформация Notion-черновиков в статьи для LinkedIn/Substack |
+## Commands
 
-### [@zariavv](https://github.com/zariavv)
+```bash
+# View project health
+/orchestrator
 
-| Скилл | Описание |
-|-------|----------|
-| [project-knowledge-base](skills/project-knowledge-base) | Инициализация и обновление базы знаний проекта (PKB.md) в Obsidian — агрегация из Google Drive, Gmail, Telegram, moo.team и локальных заметок |
+# Daily standup
+/standup-prep
 
-### [@bykovvasily](https://github.com/bykovvasily)
+# Create issue in correct repo
+/task-routing
 
-| Скилл | Описание |
-|-------|----------|
-| [roi-razvitie-draft](skills/roi-razvitie-draft) | Драфт документа к еженедельной встрече «Roi Развитие» (среда) — пункты для обсуждения и заметки |
+# Save session context
+/session-save {name}
+```
 
-### [@aPoWall](https://github.com/aPoWall)
+---
 
-| Скилл | Описание |
-|-------|----------|
-| [deck](skills/deck) | HTML-генератор презентаций — 2 стиля (terminal/editorial), single-file, zero dependencies |
+## Contributing
 
-## Chrome Extensions
+1. Work happens in `work/issue-{n}-{name}/`
+2. Research goes to `research-corp/{topic}/`
+3. Canonical files updated directly
+4. Commit with issue reference: `feat: description (#2)`
 
-Расширения для браузера Chrome, созданные участниками спринта.
+---
 
-| Расширение | Автор | Описание |
-|------------|-------|----------|
-| [ev_garde](Chrome%20Extensions/ev_garde) | [@ev_garde](https://github.com/ev_garde) | Chrome-расширение new tab + скилл ai-bear-newsletter |
-
-## Участие
-
-Добавляйте свои материалы через PR.
-
-Формат имени файла: `имя-фамилия-тема.md`
-# ai-mindset-org
+**Last Updated:** 2026-04-21  
+**Framework:** Personal Corp v1.0

@@ -1,0 +1,94 @@
+# AI Mindset — Personal Corp
+
+AI First компания, полностью управляемая агентами. CEO = дирижёр, не исполнитель.
+
+---
+
+## Agent Operations Config
+
+### Repos (scanned during retro/planning)
+
+repos:
+  - wtf-tupak/ai-mindset        # CEO — strategy, vision, key decisions
+  - wtf-tupak/pos-cash          # CFO — metrics, unit-economics, reports
+  - wtf-tupak/pos-offer         # CPO — product packages, pricing, offers
+  - wtf-tupak/pos-growth        # CMO — content, funnels, acquisition
+  - wtf-tupak/pos-delivery      # COO — service delivery, templates
+  - wtf-tupak/pos-sprint        # CTO — infrastructure, skills, MCP
+  - wtf-tupak/pos-print         # CTO — CLI visualization, dashboards
+
+### GitHub Project
+
+project_id: 1                  # gh project list --owner wtf-tupak
+owner: wtf-tupak
+
+### Canonical Files (single source of truth)
+
+canonical:
+  numbers: pos-cash/data.md          # revenue, users, metrics, unit-economics
+  products: pos-offer/product.md      # current offers and pricing
+  insights: ai-mindset/insights.md   # lessons learned, decisions
+
+### Task Routing (which issues go where)
+
+routing:
+  - pattern: "metrics, revenue, unit-economics, reports, P&L, cashflow"
+    repo: wtf-tupak/pos-cash
+  - pattern: "offer, pricing, package, product, upsell, LTV"
+    repo: wtf-tupak/pos-offer
+  - pattern: "content, funnel, acquisition, smm, email, marketing"
+    repo: wtf-tupak/pos-growth
+  - pattern: "delivery, template, checklist, client, execution"
+    repo: wtf-tupak/pos-delivery
+  - pattern: "infrastructure, skill, mcp, hook, memory"
+    repo: wtf-tupak/pos-sprint
+  - pattern: "terminal, dashboard, cli, html, css, print"
+    repo: wtf-tupak/pos-print
+  - pattern: "strategy, vision, decision, retro, planning"
+    repo: wtf-tupak/ai-mindset
+
+### Retro/Planning
+
+retro_label_prefix: "retro"
+retro_log_path: "docs/activity-log/"
+weekly_cadence: "Thursday"
+
+### Interview Topics (for weekly-retro)
+
+interview_order:
+  - "Delivery — main product/service output"
+  - "Clients/Users — new, churned, notable"
+  - "Calendar events — verify each one"
+  - "New initiatives — what started, why"
+  - "Open question — anything else?"
+
+---
+
+## Business Model
+
+- **Концепция**: AI First — полностью без штата, только AI-агенты + фрилансеры по необходимости
+- **Роль CEO**: дирижёр — результат (поток клиентов, прибыль), не исполнитель
+- **Модель**: лёгкая точка входа → комплексный апселл через несколько месяцев
+- **Апселл**: редизайн, структура, исследования, интеграция маркетинговой системы
+
+## C-Suite Structure
+
+| Роль | Репа | Ответственность |
+|------|------|-----------------|
+| CEO | ai-mindset | стратегия, vision, ключевые решения |
+| CFO | pos-cash | метрики, unit-экономика, отчёты |
+| CPO | pos-offer | продуктовая линейка, цены, пакеты |
+| CMO | pos-growth | контент, воронки, каналы |
+| COO | pos-delivery | доставка услуг, шаблоны, чеклисты |
+| CTO | pos-sprint, pos-print | инфраструктура, скилы, MCP, CLI |
+
+## Available Skills
+
+- `/weekly-retro` — ретроспектива по конфигу
+- `/weekly-planning` — планирование недели
+- `/standup-prep` — ежедневный стендап
+- `/task-routing` — роутинг задач в нужные репы
+- `/gh-issues` — управление GitHub Issues
+- `/pos-audit` — аудит POS-инфраструктуры
+- `/pos-morning` — утренний бриф
+- `/pos-dashboard-gen` — генерация дашборда
