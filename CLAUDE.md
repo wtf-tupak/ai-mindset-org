@@ -57,7 +57,112 @@ This repo is part of **Personal Corp** — AI-native management system.
 
 ---
 
-## Task Routing
+## File Routing Rules
+
+**Organized by lifecycle, not topic.** Every file has one correct location.
+
+| Location | Purpose | What Goes Here | ❌ Forbidden |
+|----------|---------|----------------|------------|
+| **ROOT/** | Canonical | Authoritative reference files only | Drafts, temp files, work artifacts |
+| **research-corp/** | Discovery | Conventions, patterns, research, guides | Code, active work, deliverables |
+| **work/** | Execution | Task artifacts by GitHub issue | Reference docs, canonical rules |
+| **work/archive/** | Completed | Finished work by date | Active work, ongoing tasks |
+| **skills/** | Reusable | Claude Code skills with SKILL.md | One-off scripts, drafts |
+| **.github/** | Automation | CI/CD workflows, templates | Source code, docs |
+
+### Detailed Routing
+
+#### ROOT/ — Canonical Only
+
+| File Type | Example | Action |
+|-----------|---------|--------|
+| ✅ AGENTS.md | Agent registry | Keep here |
+| ✅ CLAUDE.md | Project rules | Keep here |
+| ✅ README.md | Project overview | Keep here |
+| ✅ STRUCTURE.md | Organization docs | Keep here |
+| ❌ data.md | Work artifact | → work/issue-*/ |
+| ❌ draft.md | Draft document | → work/issue-*/ or delete |
+| ❌ notes.md | Personal notes | → work/issue-*/ |
+| ❌ script.js | Work script | → work/issue-*/ |
+
+#### research-corp/ — Research & Patterns
+
+| File Type | Example | Location |
+|-----------|---------|----------|
+| ✅ naming-convention.md | File naming guide | research-corp/naming-convention/ |
+| ✅ orchestration-rules.md | Model orchestration | research-corp/orchestration/ |
+| ✅ context-storage.md | Architecture research | research-corp/context-storage/ |
+| ✅ session-management.md | Protocol docs | research-corp/session-management/ |
+| ❌ active-code.py | Working code | → work/issue-*/ |
+| ❌ draft-proposal.md | Draft offer | → work/issue-*/ or pos-offer |
+
+#### work/ — Active Execution
+
+**Rule:** One folder per GitHub issue
+
+```
+work/
+├── issue-2-agency-infra/     # Epic infrastructure
+│   ├── data.md               # Data artifacts
+│   ├── product.md            # Product specs
+│   └── clear-calendar.js     # Scripts
+├── issue-1-cmo-agent/        # Task CMO Agent
+└── archive/                  # Completed
+    └── 2026-04-21/           # By completion date
+```
+
+| File Type | Example | Action |
+|-----------|---------|--------|
+| ✅ data.md | CFO dashboard data | work/issue-*/data.md |
+| ✅ product.md | Product specs | work/issue-*/product.md |
+| ✅ script.js | Working script | work/issue-*/script.js |
+| ✅ asset.png | Issue asset | work/issue-*/assets/ |
+| ❌ README.md | Project docs | → ROOT/ |
+| ❌ convention.md | Pattern guide | → research-corp/ |
+
+#### skills/ — Reusable Tools
+
+| File Type | Example | Location |
+|-----------|---------|----------|
+| ✅ SKILL.md | Skill definition | skills/{name}/SKILL.md |
+| ✅ script.py | Skill scripts | skills/{name}/scripts/ |
+| ❌ one-off.js | Single use | → work/issue-*/ |
+| ❌ draft.md | WIP skill | Finish or delete |
+
+### Commit Message Routing
+
+```
+[canon]   → ROOT/ files updated (AGENTS.md, CLAUDE.md, etc.)
+[research] → research-corp/ new patterns or updates
+[work]     → work/ active task progress
+[archive]  → work/archive/ completed work moved
+```
+
+### Quick Decision Tree
+
+```
+Is this file...
+├── Authoritative reference? → ROOT/
+├── Convention or pattern?   → research-corp/
+├── Task artifact?           → work/issue-{n}/
+├── Finished work?           → work/archive/{date}/
+├── Reusable skill?          → skills/{name}/
+└── CI/CD automation?        → .github/
+```
+
+### Violations
+
+| Violation | Fix |
+|-----------|-----|
+| Draft in ROOT/ | Move to work/issue-*/ or delete |
+| Convention in work/ | Move to research-corp/ |
+| Work artifact in ROOT/ | Move to work/issue-*/ |
+| Finished work in work/ | Move to work/archive/{date}/ |
+| Random script in ROOT/ | Move to work/issue-*/ or skills/ |
+
+---
+
+## Repo Routing (Personal Corp)
 
 **This repo receives:**
 - Print, terminal, dashboard, CLI issues
@@ -67,6 +172,7 @@ This repo is part of **Personal Corp** — AI-native management system.
 **Route to other repos:**
 - `pos-sprint` — skills, infrastructure, audit, MCP, memory
 - `pos-offer` — offers, proposals, client work
+- `ai-mindset-org` — strategy, CEO-level decisions, agency infrastructure
 
 ---
 
