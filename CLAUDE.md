@@ -98,17 +98,23 @@ This repo is part of **Personal Corp** — AI-native management system.
 
 #### work/ — Active Execution
 
-**Rule:** One folder per GitHub issue
+**Hard Rule:** No GitHub Issue = No file in work/
+
+Every file in work/ must reference an issue:
+- Folder name: `work/issue-{number}-{short-name}/`
+- Files inside: artifacts for that specific issue
+- No orphaned files allowed
 
 ```
 work/
-├── issue-2-agency-infra/     # Epic infrastructure
-│   ├── data.md               # Data artifacts
-│   ├── product.md            # Product specs
-│   └── clear-calendar.js     # Scripts
-├── issue-1-cmo-agent/        # Task CMO Agent
-└── archive/                  # Completed
+├── issue-2-agency-infra/     # GitHub issue #2
+│   ├── data.md               # Artifacts for #2
+│   └── product.md
+├── issue-1-cmo-agent/        # GitHub issue #1
+│   └── (artifacts for #1)
+└── archive/                  # Completed issues
     └── 2026-04-21/           # By completion date
+        └── issue-5-closed/   # Moved here when closed
 ```
 
 | File Type | Example | Action |
@@ -116,7 +122,8 @@ work/
 | ✅ data.md | CFO dashboard data | work/issue-*/data.md |
 | ✅ product.md | Product specs | work/issue-*/product.md |
 | ✅ script.js | Working script | work/issue-*/script.js |
-| ✅ asset.png | Issue asset | work/issue-*/assets/ |
+| ❌ orphaned.js | No issue reference | Create issue or delete |
+| ❌ random.md | No issue reference | Create issue or move to ROOT/ |
 | ❌ README.md | Project docs | → ROOT/ |
 | ❌ convention.md | Pattern guide | → research-corp/ |
 
