@@ -1,0 +1,27 @@
+name: Auto Label on Commit
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches:
+      - main
+
+jobs:
+  label-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract issue number from commit
+        run: |
+          echo "${{ github.event.head_commit.message }}"
+          ISSUE_NUM=$(echo "${{ github.event.head_commit.message }}" | grep -oP '(?:#)\d+' | grep -oP '\d+' | head -1)
+          if [ -n "$ISSUE_NUM" ]; then
+            echo "ISSUE_NUM=$ISSUE_NUM" >> $GITHUB_ENV
+          fi
+
+      - name: Add label to linked issue
+        if: env.ISSUE_NUM
+        run: |
+          gh issue edit $ISSUE_NUM --repo ${{ github.repository }} --add-label "in-review" 2>/dev/null || echo "Issue edit skipped"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
