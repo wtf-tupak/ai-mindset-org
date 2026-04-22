@@ -1,0 +1,67 @@
+{
+  "name": "prompt-architect",
+  "role": "content-creation",
+  "description": "Создание текстов по Julian Shapiro framework. Оборачивает writing-content скилл.",
+  "skill_source": "skills/writing-content/SKILL.md",
+  "model": "sonnet",
+  "workflows_supported": ["idea", "intro", "article", "rewrite", "polish"],
+  "input_schema": {
+    "task": {
+      "type": "string",
+      "description": "Описание задачи",
+      "required": true,
+      "example": "написать пост про email-маркетинг"
+    },
+    "workflow": {
+      "type": "string",
+      "enum": ["idea", "intro", "article", "rewrite", "polish"],
+      "description": "Какой workflow использовать",
+      "required": true,
+      "default": "article"
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "audience": { "type": "string" },
+        "tone": { "type": "string" },
+        "length": { "type": "string", "enum": ["short", "medium", "long"] }
+      },
+      "description": "Дополнительный контекст"
+    }
+  },
+  "output_schema": {
+    "result": {
+      "type": "string",
+      "description": "Результат (markdown текст)"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["success", "escalation", "failed"]
+    },
+    "quality_score": {
+      "type": "integer",
+      "min": 0,
+      "max": 100
+    },
+    "workflow_used": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "novelty_score": { "type": "integer" },
+        "resonance_score": { "type": "integer" },
+        "ai_slop_score": { "type": "integer" }
+      }
+    },
+    "reason": {
+      "type": "string",
+      "description": "Причина для escalation или failed"
+    }
+  },
+  "escalation_triggers": [
+    { "condition": "task_unclear", "action": "escalation" },
+    { "condition": "quality_score < 50", "action": "escalation" },
+    { "condition": "requires_voice", "action": "escalation" }
+  ]
+}

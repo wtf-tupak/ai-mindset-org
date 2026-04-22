@@ -1,0 +1,68 @@
+{
+  "name": "orchestrator",
+  "role": "brain",
+  "description": "Orchestrator Agent — центр управления. Планирует, оценивает, делегирует, эскалирует.",
+  "model": "opus",
+  "makes_decisions": true,
+  "delegates_to": [
+    "prompt-architect",
+    "marketing-strategist",
+    "vendor-manager",
+    "business-analyst",
+    "presentation-agent",
+    "product-strategist"
+  ],
+  "input_schema": {
+    "task": {
+      "type": "string",
+      "description": "Задача от юзера или CEO",
+      "required": true
+    },
+    "context": {
+      "type": "object",
+      "description": "Дополнительный контекст (опционально)"
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["low", "normal", "high", "critical"],
+      "default": "normal"
+    }
+  },
+  "output_schema": {
+    "result": {
+      "type": "string",
+      "description": "Результат выполнения задачи"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["success", "escalation", "failed"],
+      "description": "Статус: успех / эскалация / провал"
+    },
+    "quality_score": {
+      "type": "integer",
+      "min": 0,
+      "max": 100,
+      "description": "Самооценка качества результата"
+    },
+    "agent_used": {
+      "type": "string",
+      "description": "Какой агент обрабатывал задачу"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Причина эскалации или провала"
+    }
+  },
+  "escalation_rules": {
+    "self_handle": [
+      "архитектура",
+      "оценка качества",
+      "стратегия",
+      "планирование",
+      "мелкие задачи < 30 сек",
+      "голос/стиль"
+    ],
+    "retry_before_escalate": 2,
+    "escalation_trigger": "subagent.failed_2x OR task.type in self_handle"
+  }
+}
