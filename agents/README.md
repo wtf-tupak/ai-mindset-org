@@ -1,26 +1,40 @@
 # Agents Registry
 
-Агенты для AI-First Агентства. Orchestrator управляет через JSON interface.
+Агенты для AI-First Агентства. Orchestrator (CEO) управляет через JSON interface.
 
-## Структура
+## C-Suite (Top Level)
+
+| Agent | Role | Skill Source |
+|-------|------|-------------|
+| `ceo` | Стратегия, эскалации | skills/orchestrator |
+| `cmo` | Маркетинг, SEO, контент | skills/marketing-strategist + seo-strategist |
+| `coo` | Операции, процессы | skills/business-analyst-toolkit |
+| `cto` | Технологии, архитектура | skills/learning-loop |
+| `cfo` | Финансы, ROI | skills/roi-razvitie-draft |
+
+## Execution Agents (Delegated)
+
+| Agent | Role | Skill Source |
+|-------|------|-------------|
+| `prompt-architect` | Тексты (Julian Shapiro) | skills/writing-content |
+| `marketing-strategist` | SEO + контент-план | skills/seo-strategist |
+| `vendor-manager` | Поиск подрядчиков | skills/find-vendor |
+| `business-analyst` | Бизнес-анализ | skills/business-analyst-toolkit |
+
+## Организационная структура
 
 ```
-agents/
-├── orchestrator/          # Мозг системы
-│   ├── SKILL.md
-│   └── agent.json
-├── prompt-architect/      # Тексты (Julian Shapiro)
-│   ├── SKILL.md
-│   └── agent.json
-├── marketing-strategist/  # SEO + контент
-│   ├── SKILL.md
-│   └── agent.json
-├── vendor-manager/        # Поиск подрядчиков
-│   ├── SKILL.md
-│   └── agent.json
-└── business-analyst/      # Бизнес-анализ
-    ├── SKILL.md
-    └── agent.json
+CEO (Orchestrator)
+├── CMO
+│   ├── prompt-architect
+│   └── marketing-strategist
+├── COO
+│   ├── business-analyst
+│   └── vendor-manager
+├── CTO
+│   └── learning-loop
+└── CFO
+    └── roi-razvitie-draft
 ```
 
 ## Интерфейс
