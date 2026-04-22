@@ -1,0 +1,57 @@
+{
+  "name": "vendor-manager",
+  "role": "vendor-management",
+  "description": "Поиск подрядчиков. Оборачивает find-vendor скилл.",
+  "skill_source": "skills/find-vendor/SKILL.md",
+  "model": "sonnet",
+  "task_types_supported": ["find_translator", "find_editor", "find_proofreader", "rank_vendors"],
+  "input_schema": {
+    "task": {
+      "type": "string",
+      "description": "Описание задачи",
+      "required": true
+    },
+    "task_type": {
+      "type": "string",
+      "enum": ["find_translator", "find_editor", "find_proofreader", "rank_vendors"],
+      "required": true
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "source": { "type": "string" },
+        "target": { "type": "string" },
+        "specialty": { "type": "string" },
+        "top_n": { "type": "integer", "default": 5 }
+      }
+    }
+  },
+  "output_schema": {
+    "result": {
+      "type": "string",
+      "description": "Markdown со списком кандидатов"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["success", "escalation", "failed"]
+    },
+    "quality_score": {
+      "type": "integer",
+      "min": 0,
+      "max": 100
+    },
+    "candidates_count": {
+      "type": "integer"
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "reason": {
+      "type": "string"
+    }
+  },
+  "escalation_triggers": [
+    { "condition": "baserow_missing", "action": "escalation" },
+    { "condition": "no_candidates", "action": "escalation" }
+  ]
+}

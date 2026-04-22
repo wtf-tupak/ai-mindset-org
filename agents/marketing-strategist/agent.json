@@ -1,0 +1,77 @@
+{
+  "name": "marketing-strategist",
+  "role": "marketing",
+  "description": "SEO-стратегия и контент-план. Оборачивает seo-strategist + product-strategist.",
+  "skill_source": ["skills/seo-strategist/SKILL.md", "skills/product-strategist/SKILL.md"],
+  "model": "sonnet",
+  "task_types_supported": [
+    "keyword_research",
+    "technical_seo",
+    "content_plan",
+    "seo_roadmap",
+    "competitive_analysis",
+    "marketing_okr"
+  ],
+  "input_schema": {
+    "task": {
+      "type": "string",
+      "description": "Описание задачи",
+      "required": true
+    },
+    "task_type": {
+      "type": "string",
+      "enum": [
+        "keyword_research",
+        "technical_seo",
+        "content_plan",
+        "seo_roadmap",
+        "competitive_analysis",
+        "marketing_okr"
+      ],
+      "required": true
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "industry": { "type": "string" },
+        "target_keywords": { "type": "array", "items": { "type": "string" } },
+        "competitors": { "type": "array", "items": { "type": "string" } },
+        "goals": { "type": "string" }
+      }
+    }
+  },
+  "output_schema": {
+    "result": {
+      "type": "string",
+      "description": "Markdown результат"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["success", "escalation", "failed"]
+    },
+    "quality_score": {
+      "type": "integer",
+      "min": 0,
+      "max": 100
+    },
+    "skill_used": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "keywords_found": { "type": "integer" },
+        "clusters": { "type": "integer" },
+        "priority": { "type": "string" }
+      }
+    },
+    "reason": {
+      "type": "string"
+    }
+  },
+  "escalation_triggers": [
+    { "condition": "task_unclear", "action": "escalation" },
+    { "condition": "requires_deep_research", "action": "escalation" },
+    { "condition": "quality_score < 50", "action": "escalation" }
+  ]
+}

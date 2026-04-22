@@ -1,0 +1,72 @@
+{
+  "name": "business-analyst",
+  "role": "business-analysis",
+  "description": "Бизнес-анализ, процессы, GAP-анализ. Оборачивает business-analyst-toolkit.",
+  "skill_source": "skills/business-analyst-toolkit/SKILL.md",
+  "model": "sonnet",
+  "task_types_supported": [
+    "process_analysis",
+    "requirements_doc",
+    "gap_analysis",
+    "process_improvement",
+    "stakeholder_map",
+    "kpi_calculation"
+  ],
+  "input_schema": {
+    "task": {
+      "type": "string",
+      "description": "Описание задачи",
+      "required": true
+    },
+    "task_type": {
+      "type": "string",
+      "enum": [
+        "process_analysis",
+        "requirements_doc",
+        "gap_analysis",
+        "process_improvement",
+        "stakeholder_map",
+        "kpi_calculation"
+      ],
+      "required": true
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "industry": { "type": "string" },
+        "current_state": { "type": "string" },
+        "target_state": { "type": "string" }
+      }
+    }
+  },
+  "output_schema": {
+    "result": {
+      "type": "string",
+      "description": "Markdown результат"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["success", "escalation", "failed"]
+    },
+    "quality_score": {
+      "type": "integer",
+      "min": 0,
+      "max": 100
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "gaps_found": { "type": "integer" },
+        "critical_gaps": { "type": "integer" }
+      }
+    },
+    "reason": {
+      "type": "string"
+    }
+  },
+  "escalation_triggers": [
+    { "condition": "task_unclear", "action": "escalation" },
+    { "condition": "requires_stakeholder_input", "action": "escalation" },
+    { "condition": "quality_score < 50", "action": "escalation" }
+  ]
+}
