@@ -1,0 +1,30 @@
+name: Sync Issues to Google Tasks
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install googleapis
+
+      - name: Get all open issues from wtf-tupak repos
+        id: fetch-issues
+        run: |
+          node .github/scripts/sync-issues-to-tasks.js
+        env:
+          GOOGLE_TASKS_TOKEN: ${{ secrets.GOOGLE_TASKS_TOKEN }}
+          TASKS_LIST_ID: ${{ vars.GOOGLE_TASKS_LIST_ID }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
