@@ -17,14 +17,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies
-        run: npm install googleapis
-
       - name: Get all open issues from wtf-tupak repos
-        id: fetch-issues
-        run: |
-          node .github/scripts/sync-issues-to-tasks.js
+        run: node .github/scripts/sync-issues-to-tasks.js
         env:
-          GOOGLE_TASKS_TOKEN: ${{ secrets.GOOGLE_TASKS_TOKEN }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
           TASKS_LIST_ID: ${{ vars.GOOGLE_TASKS_LIST_ID }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
