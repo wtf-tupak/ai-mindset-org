@@ -1,0 +1,13 @@
+name: Test Issues Trigger
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo test
+        run: echo "Issue event triggered"
