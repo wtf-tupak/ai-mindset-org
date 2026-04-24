@@ -1,4 +1,4 @@
----
+на---
 name: business-analyst
 description: >
   Business Analyst Agent — бизнес-анализ, процессы, GAP-анализ.

@@ -1,17 +1,35 @@
 {
   "name": "orchestrator",
+  "version": "2.0",
   "role": "brain",
-  "description": "Orchestrator Agent — центр управления. Планирует, оценивает, делегирует, эскалирует.",
+  "description": "Orchestrator v2 — мозг POS. Supervisor Pattern. Планирует, делегирует, оценивает. Source of truth: GitHub Issues.",
   "model": "opus",
   "makes_decisions": true,
+  "interface": "telegram + terminal",
+  "source_of_truth": "github-issues",
   "delegates_to": [
     "prompt-architect",
     "marketing-strategist",
     "vendor-manager",
     "business-analyst",
-    "presentation-agent",
-    "product-strategist"
+    "product-strategist",
+    "presentation-agent"
   ],
+  "self_handles": [
+    "архитектура",
+    "оценка качества",
+    "стратегия",
+    "планирование",
+    "мелкие задачи < 30 сек",
+    "голос/стиль"
+  ],
+  "tools": {
+    "delegation": "Task (subagents)",
+    "terminal": "Bash",
+    "files": "Read + Write",
+    "search": "WebSearch",
+    "issues": "gh CLI"
+  },
   "input_schema": {
     "task": {
       "type": "string",
@@ -20,12 +38,16 @@
     },
     "context": {
       "type": "object",
-      "description": "Дополнительный контекст (опционально)"
+      "description": "Дополнительный контекст"
     },
     "priority": {
       "type": "string",
       "enum": ["low", "normal", "high", "critical"],
       "default": "normal"
+    },
+    "github_issue": {
+      "type": "integer",
+      "description": "Номер связанного GitHub Issue (если есть)"
     }
   },
   "output_schema": {
@@ -35,34 +57,42 @@
     },
     "status": {
       "type": "string",
-      "enum": ["success", "escalation", "failed"],
-      "description": "Статус: успех / эскалация / провал"
+      "enum": ["success", "escalation", "failed"]
     },
     "quality_score": {
       "type": "integer",
       "min": 0,
-      "max": 100,
-      "description": "Самооценка качества результата"
+      "max": 100
     },
     "agent_used": {
       "type": "string",
-      "description": "Какой агент обрабатывал задачу"
+      "description": "Какой агент обрабатывал"
+    },
+    "github_issue": {
+      "type": "integer",
+      "description": "Номер GitHub Issue"
     },
     "reason": {
       "type": "string",
-      "description": "Причина эскалации или провала"
+      "description": "Причина если не success"
     }
   },
+  "context_management": {
+    "plan_file": "plan.md",
+    "status_file": "status.md",
+    "threshold_for_plan": "tasks > 5 min or > 3 steps",
+    "recovery": "Read plan.md + status.md + check GitHub Issue"
+  },
   "escalation_rules": {
-    "self_handle": [
-      "архитектура",
-      "оценка качества",
-      "стратегия",
-      "планирование",
-      "мелкие задачи < 30 сек",
-      "голос/стиль"
-    ],
     "retry_before_escalate": 2,
-    "escalation_trigger": "subagent.failed_2x OR task.type in self_handle"
+    "quality_threshold": 60,
+    "escalation_trigger": "subagent.quality < 60 after 2 retries OR task.type in self_handles"
+  },
+  "github_integration": {
+    "repo": "wtf-tupak/pos-print",
+    "labels": ["agent-task"],
+    "create_issue": "gh issue create --repo {repo}",
+    "update_issue": "gh issue comment {N} --repo {repo}",
+    "close_issue": "gh issue close {N} --repo {repo}"
   }
 }
