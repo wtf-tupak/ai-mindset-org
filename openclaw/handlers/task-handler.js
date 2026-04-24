@@ -12,14 +12,15 @@ class TaskHandler {
     this.githubExecutor = new GithubExecutor();
   }
 
-  async handleTask(chatId, task) {
+  async handleTask(chatId, task, messageThreadId = null) {
     const { task_id, type, agent, prompt, command, context } = task;
 
     // Create thread
     const threadId = this.threadManager.createThread(task_id, type, task);
 
     // Send acknowledgment
-    await this.bot.sendMessage(chatId, `🔧 Task received: ${task_id}\n📋 Type: ${type}\n🧵 Thread: ${threadId}\n\nExecuting...`);
+    const sendOptions = messageThreadId ? { message_thread_id: messageThreadId } : {};
+    await this.bot.sendMessage(chatId, `🔧 Task received: ${task_id}\n📋 Type: ${type}\n🧵 Thread: ${threadId}\n\nExecuting...`, sendOptions);
 
     try {
       let result;
@@ -63,7 +64,10 @@ class TaskHandler {
         reason: result.reason || null
       };
 
-      await this.bot.sendMessage(chatId, `✅ Task completed: ${task_id}\n\n\`\`\`json\n${JSON.stringify(response, null, 2)}\n\`\`\``, { parse_mode: 'Markdown' });
+      await this.bot.sendMessage(chatId, `✅ Task completed: ${task_id}\n\n\`\`\`json\n${JSON.stringify(response, null, 2)}\n\`\`\``, {
+        parse_mode: 'Markdown',
+        ...sendOptions
+      });
 
     } catch (error) {
       // Update thread with error
@@ -76,7 +80,10 @@ class TaskHandler {
         error: error.message
       };
 
-      await this.bot.sendMessage(chatId, `❌ Task failed: ${task_id}\n\n\`\`\`json\n${JSON.stringify(errorResponse, null, 2)}\n\`\`\``, { parse_mode: 'Markdown' });
+      await this.bot.sendMessage(chatId, `❌ Task failed: ${task_id}\n\n\`\`\`json\n${JSON.stringify(errorResponse, null, 2)}\n\`\`\``, {
+        parse_mode: 'Markdown',
+        ...sendOptions
+      });
     }
   }
 }
