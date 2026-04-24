@@ -90,7 +90,11 @@
       "Bash(mkdir -p work/issue-16-offer)",
       "Read(//c/c/Users/dimabot/Desktop/pos-print/**)",
       "Bash(claude plugins *)",
-      "Bash(python *)"
+      "Bash(python *)",
+      "Bash(jobs)",
+      "Bash(TELEGRAM_BOT_TOKEN=5680963530:AAHeAdg7nxTZ6rjyflUUAPVQNySl6Ctb5bE CLAUDE_CODE_USER_ID=fb7b-69da5d-0b093933 node server.js)",
+      "Bash(pkill -f \"node server.js\")",
+      "Bash(taskkill //F //IM node.exe)"
     ]
   }
 }

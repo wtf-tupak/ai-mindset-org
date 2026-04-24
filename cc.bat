@@ -1,0 +1,7 @@
+@echo off
+set ANTHROPIC_BASE_URL=http://localhost:20128
+set ANTHROPIC_API_KEY=sk-bf075ef7c270fb7b-69da5d-0b093933
+set ANTHROPIC_MODEL=kr/claude-sonnet-4.5
+set ANTHROPIC_SMALL_FAST_MODEL=kr/claude-sonnet-4.5
+set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+claude %*
