@@ -94,7 +94,10 @@
       "Bash(jobs)",
       "Bash(TELEGRAM_BOT_TOKEN=5680963530:AAHeAdg7nxTZ6rjyflUUAPVQNySl6Ctb5bE CLAUDE_CODE_USER_ID=fb7b-69da5d-0b093933 node server.js)",
       "Bash(pkill -f \"node server.js\")",
-      "Bash(taskkill //F //IM node.exe)"
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(npm start *)",
+      "Bash(gh webhook *)",
+      "Bash(openssl dgst *)"
     ]
   }
 }

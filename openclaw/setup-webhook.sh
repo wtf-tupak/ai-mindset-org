@@ -1,0 +1,26 @@
+#!/bin/bash
+# GitHub Webhook Setup Script
+
+REPO="wtf-tupak/pos-print"
+WEBHOOK_URL="http://localhost:3000/webhook/github"
+WEBHOOK_SECRET="bf8a5106271d617825dfe0a50f2784cba15cb8713103d147d5718b676f920942"
+
+echo "⚠️  GitHub webhook requires public URL"
+echo ""
+echo "Options:"
+echo "1. Install ngrok: choco install ngrok"
+echo "2. Use cloud deployment (Railway, Render, etc.)"
+echo "3. Manual setup via GitHub UI"
+echo ""
+echo "For now, creating webhook config for manual setup..."
+echo ""
+echo "📋 Webhook Configuration:"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Payload URL: [YOUR_PUBLIC_URL]/webhook/github"
+echo "Content type: application/json"
+echo "Secret: $WEBHOOK_SECRET"
+echo "Events: Issues (opened, closed, reopened)"
+echo "Active: ✓"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "Setup URL: https://github.com/$REPO/settings/hooks/new"
