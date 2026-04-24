@@ -2,7 +2,10 @@ name: Telegram Notify
 
 on:
   issues:
-    types: [opened, closed, reopened]
+    types:
+      - opened
+      - closed
+      - reopened
 
 permissions:
   issues: read
