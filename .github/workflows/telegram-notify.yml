@@ -1,0 +1,56 @@
+name: Telegram Notify
+
+on:
+  issues:
+    types: [opened, closed, reopened]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send notification to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: -1001979197532
+          TELEGRAM_TOPIC_ID: 963
+        run: |
+          ACTION="${{ github.event.action }}"
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          ISSUE_TITLE="${{ github.event.issue.title }}"
+          ISSUE_BODY="${{ github.event.issue.body }}"
+          ISSUE_URL="${{ github.event.issue.html_url }}"
+          REPO="${{ github.repository }}"
+
+          # Set emoji based on action
+          case $ACTION in
+            opened) EMOJI="🆕" ;;
+            closed) EMOJI="✅" ;;
+            reopened) EMOJI="🔄" ;;
+          esac
+
+          # Truncate body to 200 chars
+          BODY_PREVIEW=$(echo "$ISSUE_BODY" | head -c 200)
+          if [ ${#ISSUE_BODY} -gt 200 ]; then
+            BODY_PREVIEW="${BODY_PREVIEW}..."
+          fi
+
+          # Format message
+          MESSAGE="$EMOJI <b>Issue ${ACTION^}</b>
+
+<b>${ISSUE_TITLE}</b> (#${ISSUE_NUMBER})
+${REPO}
+
+${BODY_PREVIEW}
+
+🔗 <a href=\"${ISSUE_URL}\">View Issue</a>"
+
+          # Send to Telegram
+          curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"chat_id\": \"${TELEGRAM_CHAT_ID}\",
+              \"message_thread_id\": ${TELEGRAM_TOPIC_ID},
+              \"text\": $(echo "$MESSAGE" | jq -Rs .),
+              \"parse_mode\": \"HTML\",
+              \"disable_web_page_preview\": true
+            }"
