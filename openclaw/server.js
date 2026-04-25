@@ -5,6 +5,9 @@ const express = require('express');
 const TaskHandler = require('./handlers/task-handler');
 const ThreadManager = require('./handlers/thread-manager');
 const GitHubWebhookHandler = require('./handlers/github-webhook-handler');
+const ContextManager = require('./handlers/context-manager');
+const PersonaManager = require('./handlers/persona-manager');
+const TokenTracker = require('./handlers/token-tracker');
 
 // Bot configuration
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -24,6 +27,9 @@ const bot = new TelegramBot(token, { polling: true });
 const threadManager = new ThreadManager(bot);
 const taskHandler = new TaskHandler(bot, threadManager);
 const githubWebhookHandler = new GitHubWebhookHandler(bot, forumGroupId, forumTopicId);
+const contextManager = new ContextManager();
+const personaManager = new PersonaManager(contextManager);
+const tokenTracker = new TokenTracker();
 
 // Initialize Express for GitHub webhooks
 const app = express();
@@ -38,6 +44,10 @@ if (forumGroupId) {
   console.log(`Forum group ID: ${forumGroupId}`);
   console.log(`Forum topic ID: ${forumTopicId || 'not set'}`);
 }
+
+// Set Naval persona chat
+personaManager.setPersonaChat('naval', forumGroupId || allowedUserId, 970);
+console.log('Naval Ravikant persona configured (topic: 970)');
 
 // GitHub webhook endpoint
 app.post('/webhook/github', async (req, res) => {
@@ -69,6 +79,46 @@ app.post('/webhook/github', async (req, res) => {
 app.listen(webhookPort, () => {
   console.log(`Webhook server listening on port ${webhookPort}`);
 });
+
+// Cleanup old contexts every hour
+setInterval(() => {
+  contextManager.cleanup();
+  threadManager.cleanup();
+  tokenTracker.cleanup();
+  console.log('Cleaned up old contexts and threads');
+}, 3600000);
+
+// Send daily token summary at 23:00 every day
+const scheduleDailySummary = () => {
+  const now = new Date();
+  const target = new Date();
+  target.setHours(23, 0, 0, 0);
+
+  if (now > target) {
+    target.setDate(target.getDate() + 1);
+  }
+
+  const delay = target - now;
+
+  setTimeout(() => {
+    sendDailySummary();
+    // Schedule next day
+    setInterval(sendDailySummary, 86400000); // 24 hours
+  }, delay);
+};
+
+const sendDailySummary = () => {
+  const summary = tokenTracker.getDailySummary();
+  if (summary && forumGroupId) {
+    const message = tokenTracker.formatSummary(summary);
+    bot.sendMessage(forumGroupId, message, {
+      message_thread_id: 972, // system topic
+      parse_mode: 'Markdown'
+    }).catch(err => console.error('Error sending daily summary:', err));
+  }
+};
+
+scheduleDailySummary();
 
 // Command: /start
 bot.onText(/\/start/, (msg) => {
@@ -113,7 +163,17 @@ bot.onText(/\/status/, (msg) => {
     return;
   }
 
-  const status = threadManager.getStatus();
+  const threadStatus = threadManager.getStatus();
+  const contextStats = contextManager.getStats();
+
+  const status = `${threadStatus}
+
+**Context Stats:**
+📊 Active contexts: ${contextStats.totalContexts}
+${contextStats.contexts.slice(0, 5).map(ctx =>
+  `• ${ctx.threadId}: ${ctx.messageCount} messages`
+).join('\n')}`;
+
   bot.sendMessage(chatId, status, { parse_mode: 'Markdown' });
 });
 
@@ -166,9 +226,22 @@ bot.on('message', async (msg) => {
   }
 
   // Skip commands
-  if (text.startsWith('/')) {
+  if (text && text.startsWith('/')) {
     return;
   }
+
+  // Check if this is Naval persona topic
+  if (messageThreadId === 970) {
+    const naval = personaManager.getPersona('naval');
+    await personaManager.handlePersonaMessage(bot, naval, chatId, messageThreadId, text);
+    return;
+  }
+
+  // Determine thread context ID
+  const contextId = messageThreadId ? `${chatId}-${messageThreadId}` : `${chatId}`;
+
+  // Save user message to context
+  contextManager.addMessage(contextId, 'user', text);
 
   // Try to parse as JSON task
   try {
@@ -176,9 +249,11 @@ bot.on('message', async (msg) => {
 
     // Validate task structure
     if (!task.task_id || !task.type) {
-      bot.sendMessage(chatId, '❌ Invalid task format. Missing task_id or type.', {
+      const errorMsg = '❌ Invalid task format. Missing task_id or type.';
+      bot.sendMessage(chatId, errorMsg, {
         message_thread_id: messageThreadId
       });
+      contextManager.addMessage(contextId, 'assistant', errorMsg);
       return;
     }
 
@@ -192,9 +267,11 @@ bot.on('message', async (msg) => {
     }
 
     console.error('Error handling message:', error);
-    bot.sendMessage(chatId, `❌ Error: ${error.message}`, {
+    const errorMsg = `❌ Error: ${error.message}`;
+    bot.sendMessage(chatId, errorMsg, {
       message_thread_id: messageThreadId
     });
+    contextManager.addMessage(contextId, 'assistant', errorMsg);
   }
 });
 
