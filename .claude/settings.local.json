@@ -97,7 +97,11 @@
       "Bash(taskkill //F //IM node.exe)",
       "Bash(npm start *)",
       "Bash(gh webhook *)",
-      "Bash(openssl dgst *)"
+      "Bash(openssl dgst *)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(netstat -ano)",
+      "Bash(awk '{print $5}')",
+      "Bash(taskkill *)"
     ]
   }
 }

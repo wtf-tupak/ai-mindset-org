@@ -8,6 +8,9 @@ const GitHubWebhookHandler = require('./handlers/github-webhook-handler');
 const ContextManager = require('./handlers/context-manager');
 const PersonaManager = require('./handlers/persona-manager');
 const TokenTracker = require('./handlers/token-tracker');
+const ProactiveEngine = require('./proactive/proactive-engine');
+const GitHubMonitor = require('./proactive/monitors/github-monitor');
+const IssueTrigger = require('./proactive/triggers/issue-trigger');
 
 // Bot configuration
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -25,11 +28,55 @@ const bot = new TelegramBot(token, { polling: true });
 
 // Initialize managers
 const threadManager = new ThreadManager(bot);
-const taskHandler = new TaskHandler(bot, threadManager);
-const githubWebhookHandler = new GitHubWebhookHandler(bot, forumGroupId, forumTopicId);
 const contextManager = new ContextManager();
 const personaManager = new PersonaManager(contextManager);
 const tokenTracker = new TokenTracker();
+
+// Initialize adaptive system
+const FeedbackCollector = require('./adaptive/feedback-collector');
+const PreferenceStore = require('./adaptive/preference-store');
+const PromptAdapter = require('./adaptive/prompt-adapter');
+
+const feedbackCollector = new FeedbackCollector(bot, contextManager);
+const preferenceStore = new PreferenceStore();
+const promptAdapter = new PromptAdapter(preferenceStore, feedbackCollector);
+
+personaManager.setPromptAdapter(promptAdapter);
+
+console.log('Adaptive learning system initialized');
+
+// Initialize multi-agent system
+const AgentRegistry = require('./agents/registry');
+const AgentCoordinator = require('./agents/coordinator');
+const DelegationSystem = require('./agents/delegation');
+const AgentExecutor = require('./executors/agent-executor');
+
+const agentRegistry = new AgentRegistry();
+const agentExecutor = new AgentExecutor();
+const agentCoordinator = new AgentCoordinator(agentRegistry, contextManager, agentExecutor);
+const delegationSystem = new DelegationSystem(agentCoordinator, contextManager);
+
+console.log('Multi-agent system initialized');
+
+// Initialize task handler with coordinator
+const taskHandler = new TaskHandler(bot, threadManager);
+taskHandler.setCoordinator(agentCoordinator);
+
+const githubWebhookHandler = new GitHubWebhookHandler(bot, forumGroupId, forumTopicId);
+
+// Initialize proactive engine
+const proactiveEngine = new ProactiveEngine(bot, contextManager);
+const githubMonitor = new GitHubMonitor(contextManager);
+const issueTrigger = new IssueTrigger(forumGroupId || allowedUserId, forumTopicId);
+
+proactiveEngine.registerMonitor(githubMonitor);
+proactiveEngine.registerTrigger(issueTrigger);
+proactiveEngine.setTaskHandler(taskHandler);
+
+// Connect proactive engine to webhook handler
+githubWebhookHandler.setProactiveEngine(proactiveEngine);
+
+console.log('Proactive engine initialized with GitHub monitor and issue trigger');
 
 // Initialize Express for GitHub webhooks
 const app = express();
@@ -85,7 +132,8 @@ setInterval(() => {
   contextManager.cleanup();
   threadManager.cleanup();
   tokenTracker.cleanup();
-  console.log('Cleaned up old contexts and threads');
+  preferenceStore.decay();
+  console.log('Cleaned up old contexts, threads, and decayed preferences');
 }, 3600000);
 
 // Send daily token summary at 23:00 every day
@@ -233,7 +281,7 @@ bot.on('message', async (msg) => {
   // Check if this is Naval persona topic
   if (messageThreadId === 970) {
     const naval = personaManager.getPersona('naval');
-    await personaManager.handlePersonaMessage(bot, naval, chatId, messageThreadId, text);
+    await personaManager.handlePersonaMessage(bot, naval, chatId, messageThreadId, text, userId);
     return;
   }
 

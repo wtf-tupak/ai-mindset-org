@@ -45,6 +45,16 @@ class ContextManager {
     return context.metadata[key];
   }
 
+  getAllMetadata(threadId) {
+    const context = this.getContext(threadId);
+    return context.metadata;
+  }
+
+  deleteMetadata(threadId, key) {
+    const context = this.getContext(threadId);
+    delete context.metadata[key];
+  }
+
   // Cleanup old contexts (older than 24 hours)
   cleanup(maxAge = 86400000) {
     const now = Date.now();

@@ -1,8 +1,18 @@
+const axios = require('axios');
+
 class PersonaManager {
   constructor(contextManager) {
     this.contextManager = contextManager;
     this.personas = new Map();
+    this.apiKey = process.env.OMNIROUTE_API_KEY;
+    this.baseURL = process.env.OMNIROUTE_BASE_URL || 'http://localhost:20128/v1';
+    this.model = process.env.OMNIROUTE_MODEL || 'moonshot-v1-8k';
+    this.promptAdapter = null;
     this.initializePersonas();
+  }
+
+  setPromptAdapter(adapter) {
+    this.promptAdapter = adapter;
   }
 
   initializePersonas() {
@@ -27,6 +37,11 @@ Topics you care about:
 - Technology, startups, and investing
 - Philosophy, especially Stoicism and Buddhism
 
+Languages:
+- You understand and respond in English, Russian (русский), and Ukrainian (українська)
+- Match the user's language in your response
+- Keep the same concise, insightful style in all languages
+
 Respond as Naval would - concise, insightful, and thought-provoking.`,
       chatId: null, // Will be set when chat is created
       topicId: null
@@ -45,7 +60,32 @@ Respond as Naval would - concise, insightful, and thought-provoking.`,
     }
   }
 
-  async handlePersonaMessage(bot, persona, chatId, messageThreadId, userMessage) {
+  async callAI(messages) {
+    try {
+      const response = await axios.post(
+        `${this.baseURL}/chat/completions`,
+        {
+          model: this.model,
+          messages: messages,
+          temperature: 0.7,
+          max_tokens: 500
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      return response.data.choices[0].message.content;
+    } catch (error) {
+      console.error('AI API error:', error.response?.data || error.message);
+      throw error;
+    }
+  }
+
+  async handlePersonaMessage(bot, persona, chatId, messageThreadId, userMessage, userId) {
     const contextId = messageThreadId ? `${chatId}-${messageThreadId}` : `${chatId}`;
 
     // Add user message to context
@@ -54,33 +94,56 @@ Respond as Naval would - concise, insightful, and thought-provoking.`,
     // Get conversation history
     const history = this.contextManager.getMessages(contextId, 10);
 
-    // Build prompt with context
-    const conversationContext = history
-      .map(msg => `${msg.role === 'user' ? 'User' : persona.name}: ${msg.content}`)
-      .join('\n');
+    // Adapt system prompt if adapter is available
+    let systemPrompt = persona.systemPrompt;
+    if (this.promptAdapter && userId) {
+      systemPrompt = this.promptAdapter.adaptPersonaPrompt(userId, systemPrompt, persona.name);
+    }
 
-    const fullPrompt = `${persona.systemPrompt}
+    // Build messages array for API
+    const messages = [
+      {
+        role: 'user',
+        content: `${systemPrompt}\n\nNow respond to all following messages as ${persona.name}. Stay in character.`
+      },
+      {
+        role: 'assistant',
+        content: `Understood. I am ${persona.name}. I will respond in character.`
+      }
+    ];
 
-Conversation history:
-${conversationContext}
-
-User: ${userMessage}
-
-${persona.name}:`;
-
-    // For now, return a placeholder response
-    // In production, this would call Claude API or similar
-    const response = this.generateNavalResponse(userMessage);
-
-    // Add response to context
-    this.contextManager.addMessage(contextId, 'assistant', response);
-
-    // Send response
-    await bot.sendMessage(chatId, response, {
-      message_thread_id: messageThreadId
+    // Add conversation history
+    history.forEach(msg => {
+      messages.push({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      });
     });
 
-    return response;
+    try {
+      // Call AI API
+      const response = await this.callAI(messages);
+
+      // Add response to context
+      this.contextManager.addMessage(contextId, 'assistant', response);
+
+      // Send response
+      await bot.sendMessage(chatId, response, {
+        message_thread_id: messageThreadId
+      });
+
+      return response;
+    } catch (error) {
+      // Fallback to placeholder if API fails
+      const fallback = this.generateNavalResponse(userMessage);
+      this.contextManager.addMessage(contextId, 'assistant', fallback);
+
+      await bot.sendMessage(chatId, `⚠️ AI unavailable, using fallback:\n\n${fallback}`, {
+        message_thread_id: messageThreadId
+      });
+
+      return fallback;
+    }
   }
 
   generateNavalResponse(userMessage) {

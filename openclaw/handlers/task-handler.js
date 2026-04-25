@@ -10,10 +10,15 @@ class TaskHandler {
     this.agentExecutor = new AgentExecutor();
     this.bashExecutor = new BashExecutor();
     this.githubExecutor = new GithubExecutor();
+    this.coordinator = null;
+  }
+
+  setCoordinator(coordinator) {
+    this.coordinator = coordinator;
   }
 
   async handleTask(chatId, task, messageThreadId = null) {
-    const { task_id, type, agent, prompt, command, context } = task;
+    const { task_id, type, agent, prompt, command, context, workflow } = task;
 
     // Create thread
     const threadId = this.threadManager.createThread(task_id, type, task);
@@ -27,6 +32,16 @@ class TaskHandler {
 
       // Route to appropriate executor
       switch (type) {
+        case 'workflow':
+          if (!workflow || !prompt) {
+            throw new Error('Workflow tasks require "workflow" and "prompt" fields');
+          }
+          if (!this.coordinator) {
+            throw new Error('Coordinator not initialized');
+          }
+          result = await this.coordinator.executeWorkflow(workflow, prompt, context);
+          break;
+
         case 'agent':
           if (!agent || !prompt) {
             throw new Error('Agent tasks require "agent" and "prompt" fields');

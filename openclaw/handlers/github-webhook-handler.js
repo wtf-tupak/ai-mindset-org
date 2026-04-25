@@ -3,13 +3,18 @@ class GitHubWebhookHandler {
     this.bot = bot;
     this.forumGroupId = forumGroupId;
     this.forumTopicId = forumTopicId;
+    this.proactiveEngine = null;
+  }
+
+  setProactiveEngine(engine) {
+    this.proactiveEngine = engine;
   }
 
   async handleIssueEvent(payload) {
     const { action, issue, repository } = payload;
 
-    // Only handle opened, closed, reopened
-    if (!['opened', 'closed', 'reopened'].includes(action)) {
+    // Only handle opened, closed, reopened, labeled
+    if (!['opened', 'closed', 'reopened', 'labeled'].includes(action)) {
       console.log(`Ignoring issue action: ${action}`);
       return;
     }
@@ -29,18 +34,25 @@ class GitHubWebhookHandler {
     } catch (error) {
       console.error('Error sending GitHub notification:', error);
     }
+
+    // Feed event to proactive engine
+    if (this.proactiveEngine) {
+      await this.proactiveEngine.processEvent('github_issue', payload);
+    }
   }
 
-  formatIssueMessage(action, issue, repository) {
+  formatIssueMessage(action, issue, repository, label = null) {
     const emoji = {
       opened: '🆕',
       closed: '✅',
-      reopened: '🔄'
+      reopened: '🔄',
+      labeled: '🏷️'
     }[action];
 
     const actionText = action.charAt(0).toUpperCase() + action.slice(1);
+    const labelText = label ? ` (${label.name})` : '';
 
-    return `${emoji} **Issue ${actionText}**
+    return `${emoji} **Issue ${actionText}${labelText}**
 
 **${issue.title}** (#${issue.number})
 ${repository.full_name}
