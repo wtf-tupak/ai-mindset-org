@@ -62,23 +62,55 @@ Respond as Naval would - concise, insightful, and thought-provoking.`,
 
   async callAI(messages) {
     try {
-      const response = await axios.post(
-        `${this.baseURL}/chat/completions`,
-        {
-          model: this.model,
-          messages: messages,
-          temperature: 0.7,
-          max_tokens: 500
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      // Check if using Anthropic API
+      const isAnthropic = this.baseURL.includes('anthropic.com');
 
-      return response.data.choices[0].message.content;
+      if (isAnthropic) {
+        // Anthropic API format
+        const systemMessage = messages.find(m => m.role === 'system' || m.role === 'user' && m.content.includes('You are'));
+        const conversationMessages = messages.filter(m => m !== systemMessage);
+
+        const response = await axios.post(
+          `${this.baseURL}/messages`,
+          {
+            model: this.model,
+            max_tokens: 500,
+            system: systemMessage?.content || '',
+            messages: conversationMessages.map(m => ({
+              role: m.role === 'assistant' ? 'assistant' : 'user',
+              content: m.content
+            }))
+          },
+          {
+            headers: {
+              'x-api-key': this.apiKey,
+              'anthropic-version': '2023-06-01',
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        return response.data.content[0].text;
+      } else {
+        // OpenAI-compatible format (OmniRoute, etc)
+        const response = await axios.post(
+          `${this.baseURL}/chat/completions`,
+          {
+            model: this.model,
+            messages: messages,
+            temperature: 0.7,
+            max_tokens: 500
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        return response.data.choices[0].message.content;
+      }
     } catch (error) {
       console.error('AI API error:', error.response?.data || error.message);
       throw error;
