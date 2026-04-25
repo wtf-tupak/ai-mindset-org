@@ -32,6 +32,20 @@ const contextManager = new ContextManager();
 const personaManager = new PersonaManager(contextManager);
 const tokenTracker = new TokenTracker();
 
+// Initialize Session Manager (Proactive Agent)
+const SessionManager = require('./handlers/session-manager');
+const sessionManager = new SessionManager();
+
+// Load session on startup
+(async () => {
+  await sessionManager.loadSession();
+  console.log('Session loaded - Proactive Agent active');
+})();
+
+// Initialize GitHub Context Provider
+const GitHubContextProvider = require('./managers/github-context-provider');
+const githubContextProvider = new GitHubContextProvider('wtf-tupak/ai-mindset-org');
+
 // Initialize adaptive system
 const FeedbackCollector = require('./adaptive/feedback-collector');
 const PreferenceStore = require('./adaptive/preference-store');
@@ -42,8 +56,11 @@ const preferenceStore = new PreferenceStore();
 const promptAdapter = new PromptAdapter(preferenceStore, feedbackCollector);
 
 personaManager.setPromptAdapter(promptAdapter);
+personaManager.setGitHubContextProvider(githubContextProvider);
+personaManager.setSessionManager(sessionManager);
 
 console.log('Adaptive learning system initialized');
+console.log('GitHub Context Provider initialized');
 
 // Initialize multi-agent system
 const AgentRegistry = require('./agents/registry');
@@ -62,6 +79,9 @@ console.log('Multi-agent system initialized');
 const taskHandler = new TaskHandler(bot, threadManager);
 taskHandler.setCoordinator(agentCoordinator);
 
+// Connect TaskHandler to PersonaManager (Proactive Agent capability)
+personaManager.setTaskHandler(taskHandler);
+
 const githubWebhookHandler = new GitHubWebhookHandler(bot, forumGroupId, forumTopicId);
 
 // Initialize proactive engine
@@ -73,10 +93,15 @@ proactiveEngine.registerMonitor(githubMonitor);
 proactiveEngine.registerTrigger(issueTrigger);
 proactiveEngine.setTaskHandler(taskHandler);
 
+// Initialize Manager Check-in trigger
+const ManagerCheckin = require('./proactive/triggers/manager-checkin');
+const managerCheckin = new ManagerCheckin(bot, forumGroupId || allowedUserId, 970, githubContextProvider);
+proactiveEngine.registerTrigger(managerCheckin);
+
 // Connect proactive engine to webhook handler
 githubWebhookHandler.setProactiveEngine(proactiveEngine);
 
-console.log('Proactive engine initialized with GitHub monitor and issue trigger');
+console.log('Proactive engine initialized with GitHub monitor, issue trigger, and manager check-in');
 
 // Initialize Express for GitHub webhooks
 const app = express();
@@ -135,6 +160,13 @@ setInterval(() => {
   preferenceStore.decay();
   console.log('Cleaned up old contexts, threads, and decayed preferences');
 }, 3600000);
+
+// Commit session every 10 minutes (Proactive Agent)
+setInterval(() => {
+  sessionManager.commitSession().catch(err => {
+    console.error('Error committing session:', err);
+  });
+}, 600000); // 10 minutes
 
 // Send daily token summary at 23:00 every day
 const scheduleDailySummary = () => {
@@ -261,6 +293,34 @@ bot.onText(/\/help/, (msg) => {
 Claude Code → Telegram MCP → OpenClaw → Execute → Report back`, { parse_mode: 'Markdown' });
 });
 
+// Command: /manager on
+bot.onText(/\/manager on/, (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+
+  if (userId !== allowedUserId) {
+    return;
+  }
+
+  personaManager.enableManager();
+  managerCheckin.enable();
+  bot.sendMessage(chatId, '✅ Manager enabled. Check-ins every 4 hours on topic 970.');
+});
+
+// Command: /manager off
+bot.onText(/\/manager off/, (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+
+  if (userId !== allowedUserId) {
+    return;
+  }
+
+  personaManager.disableManager();
+  managerCheckin.disable();
+  bot.sendMessage(chatId, '⏸️ Manager disabled. No more check-ins.');
+});
+
 // Handle incoming messages (task JSON)
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
@@ -330,6 +390,15 @@ bot.on('polling_error', (error) => {
 
 process.on('SIGINT', () => {
   console.log('Shutting down OpenClaw bot...');
-  bot.stopPolling();
-  process.exit(0);
+
+  // Commit session before shutdown (Proactive Agent)
+  sessionManager.commitSession().then(() => {
+    console.log('Session committed');
+    bot.stopPolling();
+    process.exit(0);
+  }).catch(err => {
+    console.error('Error committing session:', err);
+    bot.stopPolling();
+    process.exit(1);
+  });
 });
