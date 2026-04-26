@@ -1,249 +1,174 @@
----
-project: personal-corp
-type: agents-index
-owner: wtf-tupak
-area: pos-print
-status: active
-last_updated: 2026-04-21
----
+# Agents — Operating Rules & Workflows
 
-# AGENTS.md — Personal Corp Agent Registry
-
-Main registry. Maps agents, skills, repos in Personal Corp system.
+**Last Updated:** 2026-04-25
 
 ---
 
-## 📍 Personal Corp Context
+## Core Operating Rules
 
-| Component | Location | Status |
-|-----------|----------|--------|
-| Global Framework | `~/.claude/CLAUDE.md` | Personal Corp v1.0 ✓ |
-| Project Rules | `./CLAUDE.md` | pos-print rules ✓ |
-| Agent Registry | `./AGENTS.md` | active ✓ |
-| Skills Library | `~/.claude/skills/` | 15+ skills ✓ |
-| Hooks | `~/.claude/hooks.json` | 6 active ✓ |
+### 1. Revenue First Protocol
 
----
+**BEFORE any action, ask:** "Does this generate revenue or move toward first $1,000 MRR?"
 
-## 🔌 MCP Servers
+**If NO:** Block it. Redirect to sales activities.
 
-| Server | Category | Status |
-|--------|----------|--------|
-| gcal | calendar | ✓ loaded |
+**Blocked until $1,000 MRR:**
+- Infrastructure development
+- Agent system building
+- Automation tooling
+- "Nice to have" features
 
-**Note**: Personal Corp uses GitHub Issues (not Linear) for task management.
+**Allowed:**
+- Sales outreach (LinkedIn, email, Telegram)
+- Client delivery (blog posts, SEO audits, social campaigns)
+- Proposal writing
+- Sales calls
+- Free audit templates (lead magnets)
 
-**Config:** `~/.claude/mcp.json`
+### 2. WAL Protocol (Write-Ahead Logging)
 
----
+**Trigger on EVERY message — scan for:**
+- ✏️ Corrections: "It's X, not Y" / "Actually..." / "No, I meant..."
+- 📍 Proper nouns: Names, places, companies, products
+- 🎨 Preferences: Colors, styles, approaches, "I like/don't like"
+- 📋 Decisions: "Let's do X" / "Go with Y" / "Use Z"
+- 📝 Draft changes: Edits to something we're working on
+- 🔢 Specific values: Numbers, dates, IDs, URLs
 
-## 🛠️ Personal Corp Skills
+**Protocol:**
+1. **STOP** — Do not start composing response
+2. **WRITE** — Update SESSION-STATE.md with the detail
+3. **THEN** — Respond to human
 
-**Location:** `~/.claude/skills/`
+**The urge to respond is the enemy.** Context will vanish. Write first.
 
-### Orchestration
-| Skill | Pattern | Description |
-|-------|---------|-------------|
-| /orchestrator | Manager | Project health, assignments |
-| /standup-prep | Pipeline | Daily standup from GitHub Issues |
-| /weekly-planning | Pipeline | Weekly outcomes planning |
-| /weekly-retro | Pipeline | Retrospective |
+### 3. Working Buffer Protocol
 
-### Workflow
-| Skill | Pattern | Description |
-|-------|---------|-------------|
-| /task-routing | Integrator | Route issues to correct repo |
-| /gh-issues | Integrator | GitHub Issues management |
-| /issue-ops | Handler | Process /plan, /specify, /tasks, /implement |
+**At 60% context** (check via session status):
+1. CLEAR old buffer in `memory/working-buffer.md`
+2. Start fresh log
+3. **Every message after 60%:** Append both human's message AND your response summary
 
-### Session
-| Skill | Pattern | Description |
-|-------|---------|-------------|
-| /session-save | Pipeline | Save session context |
-| /continue-session | Integrator | Restore session |
-| /compress | Generator | Compress context for handoff |
+**After compaction:**
+1. Read buffer FIRST
+2. Extract important context
+3. Update SESSION-STATE.md
+4. Leave buffer as-is until next 60% threshold
 
-### Infrastructure
-| Skill | Pattern | Description |
-|-------|---------|-------------|
-| /pos-audit | Audit | Infrastructure scanner |
-| /pos-morning | Pipeline | Morning brief |
-| /pos-dashboard-gen | Generator | HTML dashboard |
-| /project-init | Pipeline | Initialize new project |
+### 4. Relentless Resourcefulness
 
----
+**Before saying "can't":**
+1. Try alternative methods (CLI, tool, different syntax, API)
+2. Search memory: "Have I done this before? How?"
+3. Question error messages — workarounds usually exist
+4. Check logs for past successes
+5. Spawn research agents
+6. Get creative — combine tools in new ways
+7. Try 5-10 methods minimum
 
-## ⚡ Personal Corp Hooks
+**"Can't" = exhausted all options**, not "first try failed"
 
-**Config:** `~/.claude/hooks.json` (6 active)
+### 5. Verify Before Reporting (VBR)
 
-| Hook | Trigger | Purpose |
-|------|---------|---------|
-| github-issues-startup | SessionStart | Show in-progress issues on session start |
-| issue-ops-handler | PostToolUse:Bash | Detect /plan, /specify, /tasks, /implement |
-| github-issues-push | PostToolUse:Bash | Remind to update issues after git push |
-| ambient-research | SessionStart | Background research on strategic topics |
-| obsidian-open | PostToolUse:Write | Auto-open .md files in Obsidian |
-| session-log | SessionEnd | Log session summary |
+**Trigger:** About to say "done", "complete", "finished"
 
----
+**Protocol:**
+1. STOP before typing that word
+2. Actually test the feature from user's perspective
+3. Verify the outcome, not just the output
+4. Only THEN report complete
 
-## 🧠 Personal Corp Memory
-
-| Type | Location | Status |
-|------|----------|--------|
-| Auto-memory | `~/.claude/projects/{project}/memory/` | 2 session files |
-| Sessions | `~/.claude/projects/{project}/memory/sessions/` | on demand |
-| GitHub Context | Issues + comments | primary source |
-
-**Principle:** GitHub Issues are the source of truth, not local files.
+**"Code exists" ≠ "feature works"**
 
 ---
 
-## 📊 Dashboard
+## Workflows
 
-| Artifact | Path | Update |
-|----------|------|--------|
-| HTML Dashboard | `~/Desktop/pos-dashboard.html` | `/pos-dashboard-gen` |
-| GitHub Project | https://github.com/users/wtf-tupak/projects/1 | Manual |
+### Sales Outreach Workflow
 
-**Features:** live clock, skill chips, metrics grid, terminal aesthetic
+**Daily Target:** 20 LinkedIn messages + 10 emails + 3 Telegram posts
 
-**Commands:**
-- `/pos-dashboard-gen` — Regenerate dashboard
-- `/orchestrator` — Project health
-- `/standup-prep` — Daily standup
-- `gh project view 1 --owner wtf-tupak` — View board
+**LinkedIn:**
+1. Search: "owner [industry] [city]"
+2. Message template: "Hi {Name}, I help {industry} businesses get more clients through SEO content. 4 blog posts/mo + SEO audit for $350/mo. First month free audit to show value."
+3. Track responses in issue #16 comments
 
----
+**Cold Email:**
+1. Find emails via Hunter.io / company websites
+2. Subject: "Free SEO audit for {Company}"
+3. Body: 3 sentences, offer free audit
+4. Track in issue #16
 
-## 📋 Session Rules
+**Telegram:**
+1. Join business groups, entrepreneur chats
+2. Offer: "Free SEO audit for first 3 businesses (worth $200)"
+3. Track conversations
 
-| Rule | Limit | Action |
-|------|-------|--------|
-| Context ○ CRIT | >70% | Emergency handoff |
-| Context ◐ WARN | 50-70% | `/session-save` |
-| Turns | 20-25 | `/compact` or new session |
-| Subagents | 2+ | Parallel execution |
-| Long tasks | — | `run_in_background: true` |
+### Client Delivery Workflow
 
-### Quick Commands
+**Week 1:** Interview (30 min) + SEO audit (2-3h) + Content calendar (1h)
+**Week 2-4:** 1 blog post/week (1.5h each) + social posts (2h/month)
+**Week 5:** Analytics report (1h) + recommendations (30 min)
 
-```bash
-/session-save {name}     # save context
-/continue {name}         # restore
-/compact                 # compress
-/standup-prep            # daily standup
-/orchestrator            # project health
-```
+**Total:** ~15-20 hours/month per client
 
----
+### Heartbeat Workflow (Weekly)
 
-## 🚀 Personal Corp Daily Workflow
-
-```
-┌─ Morning ──────────────────────────┐
-│ 1. Session starts                   │
-│    → Hook shows in-progress issues  │
-│                                     │
-│ 2. /standup-prep                    │
-│    → Yesterday / Today / Blockers     │
-│    → Pick 1-2 issues to work on     │
-├─ Work ─────────────────────────────┤
-│ 3. Create/issue select              │
-│    → /task-routing for new work     │
-│    → /gh-issues view {n} for context│
-│                                     │
-│ 4. Comment /plan or /specify        │
-│    → Auto-decomposition             │
-│    → Sub-issues created             │
-│                                     │
-│ 5. Work on issue                    │
-│    → Commit with (#N) reference     │
-│    → Hook reminds on git push       │
-├─ Evening ──────────────────────────┤
-│ 6. Update issues                    │
-│    → Comment progress               │
-│    → Close if done                  │
-│    → /session-save for handoff      │
-│                                     │
-│ 7. /orchestrator (optional)         │
-│    → Check project health           │
-└─────────────────────────────────────┘
-```
-
-**Weekly:** /weekly-planning → work → /weekly-retro
+**Every Friday at 18:00:**
+- Check issue #16 progress
+- Revenue metrics: Clients X/3, MRR $X/$1,050
+- Sales activities count
+- Update MEMORY.md with learnings
+- Proactive surprise: What would delight Dmitry?
 
 ---
 
-## 📁 Personal Corp Directory Structure
+## Learned Lessons
 
-```
-~/.claude/
-├── CLAUDE.md                 # Personal Corp framework (global)
-├── settings.json             # env vars
-├── hooks.json                # 6 active hooks
-├── mcp.json                  # gcal calendar
-├── skills/                   # Personal Corp skills
-│   ├── orchestrator/         # Project health manager
-│   ├── issue-ops/            # /plan /specify handler
-│   ├── task-routing/         # Route to correct repo
-│   ├── gh-issues/            # GitHub CLI wrapper
-│   ├── standup-prep/         # Daily standup
-│   ├── weekly-planning/      # Weekly outcomes
-│   ├── weekly-retro/         # Retrospective
-│   ├── session-save/         # Context handoff
-│   ├── continue-session/     # Restore context
-│   ├── compress/             # Context compression
-│   ├── pos-audit/            # Infrastructure scan
-│   ├── pos-morning/          # Morning brief
-│   ├── pos-dashboard-gen/    # HTML dashboard
-│   ├── pos-skill-factory/    # Create new skills
-│   └── project-init/         # Initialize projects
-├── hooks/                    # Hook scripts
-│   ├── github-issues-startup.sh    # Show in-progress
-│   ├── github-issues-push.sh      # Push reminders
-│   ├── issue-ops-handler.sh       # Detect IssueOps
-│   ├── ambient-research.sh        # Background research
-│   ├── obsidian-open.sh           # Auto-open .md
-│   └── session-log.sh             # Session logging
-└── projects/                 # Project memory
-    └── {project}/
-        └── memory/
-            ├── sessions/
-            └── MEMORY.md
+### 2026-04-25: Infrastructure Before Revenue = Death
 
-Repos (wtf-tupak/)
-├── pos-print/          # Output layer (this repo)
-├── pos-sprint/         # Infrastructure, skills
-├── pos-offer/          # Offers, proposals
-└── ai-mindset-org/     # Organization docs
-```
+**Lesson:** Always ask "Does this generate revenue?" before starting work.
+
+**What happened:** 20 issues, 19 infrastructure, 0 revenue. CEO Council critique.
+
+**Action:** Closed 18 issues, kept only #16, blocked all infrastructure until $1,000 MRR.
+
+### 2026-04-25: Charisma > Dry Accountability
+
+**Lesson:** Tough love + personality works better.
+
+**Action:** Added metaphors ("космический корабль для лимонада"), humor, provocative questions.
 
 ---
 
-## 🔗 Quick Links
+## Recurring Patterns
 
-| Resource | Path |
-|----------|------|
-| Dashboard | `~/Desktop/pos-dashboard.html` |
-| Global Framework | `~/.claude/CLAUDE.md` |
-| Project Rules | `./CLAUDE.md` |
-| Skills | `~/.claude/skills/` |
-| Hooks | `~/.claude/hooks.json` |
-| This Registry | `./AGENTS.md` |
+**Pattern:** Dmitry builds infrastructure before validating revenue.
 
-**GitHub:** https://github.com/wtf-tupak/
+**Trigger:** Mentions of "agents", "automation", "tooling"
+
+**Response:** Block with metaphor + redirect to sales.
 
 ---
 
-## 📝 Maintenance
+## Tools & Gotchas
 
-- **Review frequency:** weekly
-- **Owner:** wtf-tupak
-- **Last updated:** 2026-04-21
-- **Framework:** Personal Corp v1.0
+**GitHub CLI:** Always specify `--repo wtf-tupak/ai-mindset-org`
+
+**OpenClaw:** Port 3000 often in use, kill process first
+
+**OmniRoute:** localhost:20128/v1, OpenAI-compatible format
 
 ---
 
-*Personal Corp Agent Registry — GitHub Issues as the OS for AI agents*
+## Integration with OpenClaw
+
+**OpenClaw AI Manager:** Topic 970, 4-hour check-ins, mode detection
+
+**My role:** WAL Protocol, Working Buffer, Relentless Resourcefulness, Proactive Surprise
+
+**Synergy:** Manager monitors and pushes, I anticipate and execute.
+
+---
+
+*Updated automatically as new patterns emerge.*
