@@ -153,8 +153,16 @@ proactiveEngine.setManagerRegistry(managerRegistry);
 
 // Initialize Manager Check-in trigger
 const ManagerCheckin = require('./proactive/triggers/manager-checkin');
+const DailyStandup = require('./proactive/triggers/daily-standup');
+const ProactiveInsights = require('./proactive/triggers/proactive-insights');
+
 const managerCheckin = new ManagerCheckin(bot, forumGroupId || allowedUserId, 970, githubContextProvider);
+const dailyStandup = new DailyStandup(bot, forumGroupId || allowedUserId, 970, githubContextProvider);
+const proactiveInsights = new ProactiveInsights(bot, forumGroupId || allowedUserId, 970, githubContextProvider);
+
 proactiveEngine.registerTrigger(managerCheckin);
+proactiveEngine.registerTrigger(dailyStandup);
+proactiveEngine.registerTrigger(proactiveInsights);
 
 // Connect proactive engine to webhook handler
 githubWebhookHandler.setProactiveEngine(proactiveEngine);
