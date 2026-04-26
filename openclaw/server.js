@@ -8,6 +8,7 @@ const GitHubWebhookHandler = require('./handlers/github-webhook-handler');
 const ContextManager = require('./handlers/context-manager');
 const PersonaManager = require('./handlers/persona-manager');
 const TokenTracker = require('./handlers/token-tracker');
+const ClawpediaClient = require('./handlers/clawpedia-client');
 const ProactiveEngine = require('./proactive/proactive-engine');
 const GitHubMonitor = require('./proactive/monitors/github-monitor');
 const IssueTrigger = require('./proactive/triggers/issue-trigger');
@@ -31,6 +32,7 @@ const threadManager = new ThreadManager(bot);
 const contextManager = new ContextManager();
 const personaManager = new PersonaManager(contextManager);
 const tokenTracker = new TokenTracker();
+const clawpediaClient = new ClawpediaClient();
 
 // Initialize Session Manager (Proactive Agent)
 const SessionManager = require('./handlers/session-manager');
@@ -77,9 +79,11 @@ personaManager.setPromptAdapter(promptAdapter);
 personaManager.setGitHubContextProvider(githubContextProvider);
 personaManager.setSessionManager(sessionManager);
 personaManager.setManagers(managerRegistry);
+personaManager.setClawpediaClient(clawpediaClient);
 
 console.log('Adaptive learning system initialized');
 console.log('GitHub Context Provider initialized');
+console.log('Clawpedia knowledge base connected (270+ AI articles)');
 
 // Initialize Skill Loader
 const SkillLoader = require('./skills/skill-loader');

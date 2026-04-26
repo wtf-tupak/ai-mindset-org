@@ -1,4 +1,6 @@
 const axios = require('axios');
+const fs = require('fs').promises;
+const path = require('path');
 
 class PersonaManager {
   constructor(contextManager) {
@@ -10,6 +12,8 @@ class PersonaManager {
     this.promptAdapter = null;
     this.githubContextProvider = null;
     this.managerEnabled = true; // Kill switch
+    this.router = null; // AgentRouter — set via setRouter()
+    this.clawpediaClient = null; // ClawpediaClient — set via setClawpediaClient()
     this.initializePersonas();
   }
 
@@ -27,6 +31,20 @@ class PersonaManager {
 
   setTaskHandler(handler) {
     this.taskHandler = handler;
+  }
+
+  setRouter(router) {
+    this.router = router;
+    console.log('[PersonaManager] AgentRouter attached');
+  }
+
+  setClawpediaClient(client) {
+    this.clawpediaClient = client;
+    console.log('[PersonaManager] ClawpediaClient attached');
+  }
+
+  setManagers(managerRegistry) {
+    this.managerRegistry = managerRegistry;
   }
 
   enableManager() {
@@ -145,12 +163,22 @@ Be a charismatic revenue coach with edge. No infrastructure until $1,000 MRR.`,
   }
 
   async callAI(messages) {
+    return this.callAIForAgent(messages, 500);
+  }
+
+  /**
+   * callAIForAgent — same as callAI but with configurable max_tokens.
+   * Used by delegateToAgent() which needs 4000 tokens for full agent responses.
+   *
+   * @param {Array} messages - OpenAI-format message array
+   * @param {number} maxTokens - max tokens for response (default 500 for chat, 4000 for agents)
+   * @returns {Promise<string>}
+   */
+  async callAIForAgent(messages, maxTokens = 500) {
     try {
-      // Check if using Anthropic API
       const isAnthropic = this.baseURL.includes('anthropic.com');
 
       if (isAnthropic) {
-        // Anthropic API format
         const systemMessage = messages.find(m => m.role === 'system' || m.role === 'user' && m.content.includes('You are'));
         const conversationMessages = messages.filter(m => m !== systemMessage);
 
@@ -158,7 +186,7 @@ Be a charismatic revenue coach with edge. No infrastructure until $1,000 MRR.`,
           `${this.baseURL}/messages`,
           {
             model: this.model,
-            max_tokens: 500,
+            max_tokens: maxTokens,
             system: systemMessage?.content || '',
             messages: conversationMessages.map(m => ({
               role: m.role === 'assistant' ? 'assistant' : 'user',
@@ -183,7 +211,7 @@ Be a charismatic revenue coach with edge. No infrastructure until $1,000 MRR.`,
             model: this.model,
             messages: messages,
             temperature: 0.7,
-            max_tokens: 500
+            max_tokens: maxTokens
           },
           {
             headers: {
@@ -198,6 +226,97 @@ Be a charismatic revenue coach with edge. No infrastructure until $1,000 MRR.`,
     } catch (error) {
       console.error('AI API error:', error.response?.data || error.message);
       throw error;
+    }
+  }
+
+  /**
+   * delegateToAgent — load SKILL.md prompt and call AI in one-shot autonomous mode.
+   *
+   * Flow:
+   * 1. Find skill prompt: agent._skillPrompt → skill_source paths → /skills/{name}/SKILL.md
+   * 2. Build messages with ONE-SHOT AUTONOMOUS preamble (no clarifying questions)
+   * 3. Call callAIForAgent() with agent's max_tokens (default 4000)
+   *
+   * @param {Object} agent - agent config from registry
+   * @param {string} userMessage - original user request
+   * @returns {Promise<string>} - agent response text
+   */
+  async delegateToAgent(agent, userMessage) {
+    // 1. Get skill prompt
+    let skillPrompt = agent._skillPrompt;
+
+    if (!skillPrompt && agent.skill_source) {
+      const sources = Array.isArray(agent.skill_source) ? agent.skill_source : [agent.skill_source];
+      const parts = [];
+      for (const src of sources) {
+        try {
+          const fullPath = path.join(__dirname, '../../', src);
+          parts.push(await fs.readFile(fullPath, 'utf-8'));
+        } catch (e) {
+          console.warn(`[PersonaManager] Could not load skill_source "${src}":`, e.message);
+        }
+      }
+      if (parts.length > 0) skillPrompt = parts.join('\n\n---\n\n');
+    }
+
+    if (!skillPrompt) {
+      try {
+        const fallbackPath = path.join(__dirname, '../../skills', agent.name, 'SKILL.md');
+        skillPrompt = await fs.readFile(fallbackPath, 'utf-8');
+      } catch {}
+    }
+
+    if (!skillPrompt) {
+      console.warn(`[PersonaManager] No SKILL.md found for agent "${agent.name}". Using generic prompt.`);
+      skillPrompt = `You are ${agent.name}, a specialized AI agent. Role: ${agent.role || 'assistant'}. ${agent.description || ''}`;
+    }
+
+    // 2. Build one-shot messages
+    const messages = [
+      {
+        role: 'user',
+        content: `${skillPrompt}\n\n---\n\n## EXECUTION MODE: ONE-SHOT AUTONOMOUS\n\nExecute the following request in ONE complete response.\nDo NOT ask clarifying questions.\nIf information is missing, make reasonable assumptions and state them explicitly at the start.\nProvide a complete, actionable deliverable.\n\n## USER REQUEST:\n${userMessage}`
+      }
+    ];
+
+    const maxTokens = agent.max_tokens || 4000;
+    console.log(`[PersonaManager] Delegating to "${agent.name}" | max_tokens=${maxTokens} | prompt_len=${skillPrompt.length}`);
+
+    return await this.callAIForAgent(messages, maxTokens);
+  }
+
+  /**
+   * Send a potentially long message to Telegram, splitting at 4096 char limit.
+   *
+   * @param {Object} bot - TelegramBot instance
+   * @param {number} chatId
+   * @param {string} text
+   * @param {Object} options - e.g. { message_thread_id }
+   */
+  async sendLongMessage(bot, chatId, text, options = {}) {
+    const TELEGRAM_LIMIT = 4000; // slightly under 4096 for safety
+    if (text.length <= TELEGRAM_LIMIT) {
+      await bot.sendMessage(chatId, text, options);
+      return;
+    }
+
+    // Split on newlines to avoid cutting mid-word
+    const chunks = [];
+    let current = '';
+    for (const line of text.split('\n')) {
+      if ((current + '\n' + line).length > TELEGRAM_LIMIT) {
+        if (current) chunks.push(current);
+        current = line;
+      } else {
+        current = current ? current + '\n' + line : line;
+      }
+    }
+    if (current) chunks.push(current);
+
+    for (let i = 0; i < chunks.length; i++) {
+      await bot.sendMessage(chatId, chunks[i], options);
+      // Small delay between chunks to avoid rate limiting
+      if (i < chunks.length - 1) await new Promise(r => setTimeout(r, 300));
     }
   }
 
@@ -312,6 +431,47 @@ Use this context to provide informed advice about priorities and next steps.`;
       return;
     }
 
+    // === AGENT ROUTING (manager mode only) ===
+    // If router is attached and mode is manager, try to delegate to a specialized agent.
+    // This is the orchestrator layer — Naval stays philosophical and never routes.
+    if (mode === 'manager' && this.router) {
+      try {
+        const routeResult = await this.router.route(userMessage);
+        if (routeResult) {
+          const { agent, method, trigger } = routeResult;
+          console.log(`[PersonaManager] Routing to agent "${agent.name}" via ${method} (trigger: "${trigger}")`);
+
+          // Send typing indicator
+          await bot.sendMessage(chatId, `🤖 [${agent.name}] Выполняю задачу...`, {
+            message_thread_id: messageThreadId
+          });
+
+          const agentResult = await this.delegateToAgent(agent, userMessage);
+
+          // Format response with agent attribution
+          const header = `🎯 [Manager → ${agent.name}]`;
+          const formattedResult = `${header}\n\n${agentResult}`;
+
+          // Send (with chunking for long responses)
+          await this.sendLongMessage(bot, chatId, formattedResult, {
+            message_thread_id: messageThreadId
+          });
+
+          // Add to context
+          this.contextManager.addMessage(contextId, 'assistant', formattedResult);
+          if (this.sessionManager) {
+            this.sessionManager.logExchange(userMessage, `[Delegated to ${agent.name}]`);
+          }
+
+          return formattedResult;
+        }
+      } catch (routeError) {
+        console.error('[PersonaManager] Agent routing error:', routeError.message);
+        // Fall through to normal manager flow on error
+      }
+    }
+    // === END AGENT ROUTING ===
+
     // Add user message to context
     this.contextManager.addMessage(contextId, 'user', userMessage);
 
@@ -344,6 +504,56 @@ Use this context to provide informed advice about priorities and next steps.`;
       const sessionContext = this.sessionManager.getContext();
       if (sessionContext) {
         systemPrompt += `\n\n**Session Context (Proactive Agent):**\n${sessionContext.state.substring(0, 500)}`;
+      }
+    }
+
+    // Enrich with Clawpedia knowledge if relevant
+    if (this.clawpediaClient && this.clawpediaClient.isRelevantQuery(userMessage)) {
+      try {
+        console.log('[PersonaManager] Clawpedia query detected, searching...');
+        const articles = await this.clawpediaClient.search(userMessage, 3);
+
+        if (articles.length > 0) {
+          systemPrompt += `\n\n**Clawpedia Knowledge Base:**\n\n`;
+          systemPrompt += `You have access to ${articles.length} relevant articles from Clawpedia:\n\n`;
+
+          articles.forEach((article, i) => {
+            systemPrompt += `${i + 1}. **${article.title}**\n`;
+            systemPrompt += `   ${article.description}\n`;
+            systemPrompt += `   Content preview: ${article.content.substring(0, 500)}...\n`;
+            systemPrompt += `   [Full article: https://clawpedia.io/${article.slug}]\n\n`;
+          });
+
+          systemPrompt += `Use this knowledge to provide accurate, grounded answers. Cite Clawpedia when using this information.\n`;
+
+          console.log(`[PersonaManager] Enriched with ${articles.length} Clawpedia articles`);
+        }
+      } catch (error) {
+        console.error('[PersonaManager] Clawpedia enrichment error:', error.message);
+      }
+    }
+
+    // Enrich with additional managers if available
+    if (this.managerRegistry && mode === 'manager') {
+      try {
+        if (this.managerRegistry.hasManager('session')) {
+          const sessionMgr = this.managerRegistry.getManager('session');
+          const sessionCtx = await sessionMgr.getSessionContext();
+          if (sessionCtx.currentTask) {
+            systemPrompt += `\n\n**Current Task:** ${sessionCtx.currentTask.goal || 'None'}`;
+          }
+          if (sessionCtx.blockers.length > 0) {
+            systemPrompt += `\n**Blockers:** ${sessionCtx.blockers.join(', ')}`;
+          }
+        }
+
+        if (this.managerRegistry.hasManager('metrics')) {
+          const metricsMgr = this.managerRegistry.getManager('metrics');
+          const metrics = await metricsMgr.getRevenueMetrics();
+          systemPrompt += `\n\n**Revenue Metrics:** ${metrics.summary}`;
+        }
+      } catch (error) {
+        console.error('Error enriching with managers:', error);
       }
     }
 
@@ -389,7 +599,7 @@ Use this context to provide informed advice about priorities and next steps.`;
       }
 
       // Send response
-      await bot.sendMessage(chatId, formattedResponse, {
+      await this.sendLongMessage(bot, chatId, formattedResponse, {
         message_thread_id: messageThreadId
       });
 
@@ -493,10 +703,17 @@ Use this context to provide informed advice about priorities and next steps.`;
   async detectActionIntent(message) {
     const lower = message.toLowerCase();
 
-    // Action keywords
+    // Bash commands - detect actual commands
+    const bashCommands = ['git', 'ls', 'cd', 'pwd', 'cat', 'echo', 'npm', 'node', 'ps', 'kill', 'grep'];
+    for (const cmd of bashCommands) {
+      if (lower.includes(cmd)) {
+        return { type: 'bash', keyword: cmd, message };
+      }
+    }
+
+    // Action keywords for other types
     const actionKeywords = {
       github: ['создай issue', 'create issue', 'открой issue', 'закрой issue', 'close issue', 'обнови issue', 'update issue'],
-      bash: ['запусти', 'выполни', 'run', 'execute', 'проверь статус', 'check status'],
       file: ['создай файл', 'create file', 'напиши в файл', 'write to file', 'прочитай файл', 'read file']
     };
 
@@ -522,12 +739,53 @@ Use this context to provide informed advice about priorities and next steps.`;
       });
 
       // Create task based on intent
-      const task = {
-        task_id: `persona-${Date.now()}`,
-        type: type === 'github' ? 'github' : 'bash',
-        prompt: message,
-        context: { source: 'persona-manager', user_message: userMessage }
-      };
+      let task;
+
+      if (type === 'bash') {
+        // Extract command - look for actual bash commands
+        let command = 'echo "No command found"';
+
+        const lower = message.toLowerCase();
+
+        // Map Russian phrases to commands
+        if (lower.includes('статус') && lower.includes('гит')) {
+          command = 'git status';
+        } else if (lower.includes('git status')) {
+          command = 'git status';
+        } else if (lower.includes('ls')) {
+          command = 'ls -la';
+        } else if (lower.includes('pwd')) {
+          command = 'pwd';
+        } else {
+          // Try to extract command directly
+          const cmdMatch = message.match(/\b(git|ls|cd|pwd|cat|echo|npm|node|ps|kill|grep)\b.*/i);
+          if (cmdMatch) {
+            command = cmdMatch[0];
+          }
+        }
+
+        task = {
+          task_id: `persona-${Date.now()}`,
+          type: 'bash',
+          command: command,
+          context: { source: 'persona-manager', user_message: userMessage }
+        };
+      } else if (type === 'github') {
+        task = {
+          task_id: `persona-${Date.now()}`,
+          type: 'github',
+          action: 'create_issue', // or parse from message
+          prompt: message,
+          context: { source: 'persona-manager', user_message: userMessage }
+        };
+      } else {
+        task = {
+          task_id: `persona-${Date.now()}`,
+          type: type,
+          prompt: message,
+          context: { source: 'persona-manager', user_message: userMessage }
+        };
+      }
 
       // Execute through TaskHandler
       await this.taskHandler.handleTask(chatId, task, messageThreadId);
