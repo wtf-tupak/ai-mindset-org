@@ -1,48 +1,108 @@
-const { exec } = require('child_process');
-const { promisify } = require('util');
-const path = require('path');
-
-const execAsync = promisify(exec);
-
+/**
+ * AgentExecutor — real LLM execution for agent tasks.
+ *
+ * Replaced stub (invoke.py + hardcoded quality_score: 85) with direct callAI() calls.
+ * callAI is injected via setCallAI() after initialization (to avoid circular deps).
+ *
+ * Used by AgentCoordinator for workflow steps (spec/plan/code/review pipelines).
+ * For direct agent delegation from PersonaManager, use PersonaManager.delegateToAgent() instead.
+ */
 class AgentExecutor {
   constructor() {
-    this.agentsDir = path.join(__dirname, '../../agents');
+    this._callAI = null; // injected via setCallAI()
   }
 
+  /**
+   * Inject the callAI function from PersonaManager.
+   * Must be called before execute() is used.
+   *
+   * @param {Function} fn - async (messages, maxTokens?) => string
+   */
+  setCallAI(fn) {
+    this._callAI = fn;
+  }
+
+  /**
+   * Execute an agent task using the agent's systemPrompt + user task.
+   *
+   * @param {string} agentName - agent name (for logging)
+   * @param {string} prompt - user task prompt
+   * @param {Object} context - additional context { systemPrompt?, maxTokens? }
+   * @returns {{ status, result, quality_score, agent }}
+   */
   async execute(agentName, prompt, context = {}) {
-    // Use invoke.py script to prepare agent invocation
-    const invokePath = path.join(this.agentsDir, 'orchestrator/scripts/invoke.py');
-    const contextJson = JSON.stringify(context);
-
-    try {
-      const { stdout, stderr } = await execAsync(
-        `python "${invokePath}" "${agentName}" "${prompt}" '${contextJson}'`
-      );
-
-      if (stderr) {
-        console.error('Agent invocation stderr:', stderr);
-      }
-
-      const invocationData = JSON.parse(stdout);
-
-      // For now, return the invocation data
-      // In production, this would actually call Claude Code Agent tool
-      // via API or other mechanism
-      return {
-        status: 'success',
-        result: `Agent ${agentName} invocation prepared. In production, this would execute via Claude Code Agent tool.`,
-        quality_score: 85,
-        invocation_data: invocationData,
-        note: 'This is a stub. Full integration requires Claude Code API access.'
-      };
-
-    } catch (error) {
+    if (!this._callAI) {
+      console.error('[AgentExecutor] callAI not injected. Call setCallAI() first.');
       return {
         status: 'failed',
         result: null,
-        reason: `Agent execution failed: ${error.message}`
+        quality_score: 0,
+        agent: agentName,
+        reason: 'AgentExecutor not initialized: callAI not set'
       };
     }
+
+    const systemPrompt = context.systemPrompt || `You are a specialized agent: ${agentName}. Complete the given task thoroughly and autonomously.`;
+    const maxTokens = context.maxTokens || 2000;
+
+    const messages = [
+      {
+        role: 'user',
+        content: `${systemPrompt}\n\n## TASK\n${prompt}\n\n## EXECUTION RULE\nComplete this task in ONE response. Do not ask clarifying questions. Make reasonable assumptions if information is missing and state them explicitly.`
+      }
+    ];
+
+    try {
+      const startTime = Date.now();
+      const result = await this._callAI(messages, maxTokens);
+      const durationMs = Date.now() - startTime;
+
+      console.log(`[AgentExecutor] ✅ "${agentName}" completed in ${durationMs}ms, output: ${result.length} chars`);
+
+      return {
+        status: 'success',
+        result,
+        quality_score: this._estimateQuality(result, prompt),
+        agent: agentName,
+        duration_ms: durationMs
+      };
+    } catch (error) {
+      console.error(`[AgentExecutor] ❌ "${agentName}" failed:`, error.message);
+      return {
+        status: 'failed',
+        result: null,
+        quality_score: 0,
+        agent: agentName,
+        reason: `Execution error: ${error.message}`
+      };
+    }
+  }
+
+  /**
+   * Simple quality heuristic based on output characteristics.
+   * Not LLM-as-judge (that's in PersonaManager for delegated agents).
+   * Returns 0-100.
+   */
+  _estimateQuality(result, prompt) {
+    if (!result || result.length < 50) return 10;
+
+    let score = 50; // base
+
+    // Length bonus (more content = more work done)
+    if (result.length > 200) score += 10;
+    if (result.length > 500) score += 10;
+    if (result.length > 1000) score += 5;
+
+    // Structure bonus (markdown headers, lists)
+    if (result.includes('#')) score += 5;
+    if (result.includes('- ') || result.includes('* ')) score += 5;
+    if (result.includes('1.') || result.includes('2.')) score += 5;
+
+    // Not a stub/error response
+    if (result.includes('stub') || result.includes('placeholder')) score -= 30;
+    if (result.includes('cannot') || result.includes('unable to')) score -= 10;
+
+    return Math.min(95, Math.max(0, score));
   }
 }
 

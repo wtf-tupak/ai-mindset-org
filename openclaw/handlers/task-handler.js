@@ -17,6 +17,10 @@ class TaskHandler {
     this.coordinator = coordinator;
   }
 
+  setSkillLoader(skillLoader) {
+    this.skillLoader = skillLoader;
+  }
+
   async handleTask(chatId, task, messageThreadId = null) {
     const { task_id, type, agent, prompt, command, context, workflow } = task;
 
@@ -61,6 +65,16 @@ class TaskHandler {
             throw new Error('GitHub tasks require "operation" field');
           }
           result = await this.githubExecutor.execute(task);
+          break;
+
+        case 'skill':
+          if (!task.skillName || !task.method) {
+            throw new Error('Skill tasks require "skillName" and "method" fields');
+          }
+          if (!this.skillLoader) {
+            throw new Error('SkillLoader not initialized');
+          }
+          result = await this.skillLoader.invokeSkill(task.skillName, task.method, task.args || {});
           break;
 
         default:

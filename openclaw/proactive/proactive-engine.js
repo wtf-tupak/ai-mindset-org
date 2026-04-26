@@ -72,6 +72,10 @@ class ProactiveEngine {
     this.taskHandler = taskHandler;
   }
 
+  setManagerRegistry(managerRegistry) {
+    this.managerRegistry = managerRegistry;
+  }
+
   enable() {
     this.enabled = true;
     console.log('Proactive engine enabled');
