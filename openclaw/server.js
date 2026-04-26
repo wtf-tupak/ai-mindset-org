@@ -42,9 +42,27 @@ const sessionManager = new SessionManager();
   console.log('Session loaded - Proactive Agent active');
 })();
 
-// Initialize GitHub Context Provider
+// Initialize Manager Registry and Managers
+const ManagerRegistry = require('./managers/manager-registry');
 const GitHubContextProvider = require('./managers/github-context-provider');
+const SessionContextManager = require('./managers/session-context-manager');
+const MemoryManager = require('./managers/memory-manager');
+const MetricsManager = require('./managers/metrics-manager');
+
+const managerRegistry = new ManagerRegistry();
 const githubContextProvider = new GitHubContextProvider('wtf-tupak/ai-mindset-org');
+const sessionContextManager = new SessionContextManager({ projectRoot: __dirname + '/..' });
+const memoryManager = new MemoryManager({ projectRoot: __dirname + '/..' });
+const metricsManager = new MetricsManager({ repo: 'wtf-tupak/ai-mindset-org', revenueIssueNumber: 16 });
+
+// Register all managers
+managerRegistry.registerManager('github', githubContextProvider);
+managerRegistry.registerManager('session', sessionContextManager);
+managerRegistry.registerManager('memory', memoryManager);
+managerRegistry.registerManager('metrics', metricsManager);
+managerRegistry.setInitialized();
+
+console.log('Manager registry initialized with', managerRegistry.listManagers().length, 'managers');
 
 // Initialize adaptive system
 const FeedbackCollector = require('./adaptive/feedback-collector');
@@ -58,9 +76,19 @@ const promptAdapter = new PromptAdapter(preferenceStore, feedbackCollector);
 personaManager.setPromptAdapter(promptAdapter);
 personaManager.setGitHubContextProvider(githubContextProvider);
 personaManager.setSessionManager(sessionManager);
+personaManager.setManagers(managerRegistry);
 
 console.log('Adaptive learning system initialized');
 console.log('GitHub Context Provider initialized');
+
+// Initialize Skill Loader
+const SkillLoader = require('./skills/skill-loader');
+const skillLoader = new SkillLoader(__dirname + '/skills');
+
+(async () => {
+  const skills = await skillLoader.loadSkills();
+  console.log('Skill loader initialized with skills:', skills);
+})();
 
 // Initialize multi-agent system
 const AgentRegistry = require('./agents/registry');
@@ -73,14 +101,39 @@ const agentExecutor = new AgentExecutor();
 const agentCoordinator = new AgentCoordinator(agentRegistry, contextManager, agentExecutor);
 const delegationSystem = new DelegationSystem(agentCoordinator, contextManager);
 
+// Initialize AgentRouter
+const AgentRouter = require('./agents/router');
+const agentRouter = new AgentRouter(
+  agentRegistry,
+  (messages, maxTokens) => personaManager.callAIForAgent(messages, maxTokens || 500)
+);
+
+// Load agents from /agents/ directory (async, after startup)
+const projectRoot = __dirname + '/..';
+(async () => {
+  await agentRegistry.loadFromDirectory(projectRoot + '/agents', projectRoot);
+  const status = agentRegistry.getStatus();
+  console.log(`[AgentRegistry] Status: ${status.total} total agents`);
+  status.agents.forEach(a => {
+    console.log(`  - ${a.name} | triggers: ${a.triggers} | prompt: ${a.hasPrompt} | src: ${a.skillSource}`);
+  });
+})();
+
+// Inject callAI into AgentExecutor (replaces stub with real LLM calls)
+agentExecutor.setCallAI((messages, maxTokens) => personaManager.callAIForAgent(messages, maxTokens || 2000));
+
 console.log('Multi-agent system initialized');
 
 // Initialize task handler with coordinator
 const taskHandler = new TaskHandler(bot, threadManager);
 taskHandler.setCoordinator(agentCoordinator);
+taskHandler.setSkillLoader(skillLoader);
 
 // Connect TaskHandler to PersonaManager (Proactive Agent capability)
 personaManager.setTaskHandler(taskHandler);
+
+// Attach AgentRouter to PersonaManager (orchestrator layer)
+personaManager.setRouter(agentRouter);
 
 const githubWebhookHandler = new GitHubWebhookHandler(bot, forumGroupId, forumTopicId);
 
@@ -92,6 +145,7 @@ const issueTrigger = new IssueTrigger(forumGroupId || allowedUserId, forumTopicI
 proactiveEngine.registerMonitor(githubMonitor);
 proactiveEngine.registerTrigger(issueTrigger);
 proactiveEngine.setTaskHandler(taskHandler);
+proactiveEngine.setManagerRegistry(managerRegistry);
 
 // Initialize Manager Check-in trigger
 const ManagerCheckin = require('./proactive/triggers/manager-checkin');
@@ -101,7 +155,19 @@ proactiveEngine.registerTrigger(managerCheckin);
 // Connect proactive engine to webhook handler
 githubWebhookHandler.setProactiveEngine(proactiveEngine);
 
+// Start proactive timer for time-based triggers (Manager Check-in every 4 hours)
+setInterval(async () => {
+  try {
+    await proactiveEngine.processEvent('timer_tick', {
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('[ProactiveEngine] Timer tick error:', error.message);
+  }
+}, 60000); // Check every minute (triggers decide if they should fire)
+
 console.log('Proactive engine initialized with GitHub monitor, issue trigger, and manager check-in');
+console.log('[ProactiveEngine] Timer started (60s interval) - autonomous check-ins enabled');
 
 // Initialize Express for GitHub webhooks
 const app = express();
